@@ -34,7 +34,7 @@ func ConnectWallet(c echo.Context) error {
 
 	claims := jwt.MapClaims{
 		"public_key": req.PublicKey,
-		"exp":        time.Now().Add(time.Hour * 1).Unix(),
+		"exp":        time.Now().Add(time.Hour * 24).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

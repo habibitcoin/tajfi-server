@@ -33,7 +33,7 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 	err = godotenv.Load(".env")
 	if err != nil {
 		log.Printf("Error loading .env file, falling back to .env.sample: %v", err)
-		if fatalErr := godotenv.Load("env/.env.sample"); fatalErr != nil {
+		if fatalErr := godotenv.Load(".env.sample"); fatalErr != nil {
 			log.Fatalf(fatalErr.Error())
 		}
 	}

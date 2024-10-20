@@ -17,11 +17,19 @@ func main() {
 	}
 	e := echo.New()
 
+	// Serve static assets (like CSS and JS) from /docs/swagger-ui
+	e.Static("/docs", "docs")
+
+	// Serve index.html with the correct Content-Type header
+	e.GET("/docs", func(c echo.Context) error {
+		return c.File("docs/index.html")
+	})
+
 	// Register wallet routes
-	wallet.RegisterWalletRoutes(e, ctx)
+	wallet.RegisterWalletRoutes(e, config.GetConfig(ctx))
 
 	// Start the server
-	if err := e.Start(":8080"); err != nil {
+	if err := e.Start(":18881"); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }

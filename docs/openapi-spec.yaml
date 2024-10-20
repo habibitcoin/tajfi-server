@@ -1,0 +1,118 @@
+openapi: 3.0.0
+info:
+  title: Tajfi Wallet API
+  version: 1.0.0
+  description: API for managing Taproot assets using the Tajfi wallet.
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+paths:
+  /wallet/connect:
+    post:
+      summary: Connect a wallet
+      description: Authenticate a wallet using a public key and signature.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                public_key:
+                  type: string
+                  description: 32-byte X-coordinate of the public key
+                signature:
+                  type: string
+                  description: Signature for authentication
+              required:
+                - public_key
+                - signature
+      responses:
+        '200':
+          description: Successful connection
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT token for authorization
+        '401':
+          description: Unauthorized
+
+  /wallet/send/start:
+    post:
+      summary: Start sending an asset
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                invoice:
+                  type: string
+                  description: Invoice to send assets to
+              required:
+                - invoice
+      responses:
+        '200':
+          description: Funded PSBT returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  funded_psbt:
+                    type: string
+                    description: The funded PSBT hex
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+
+  /wallet/receive:
+    post:
+      summary: Generate an invoice to receive an asset
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                asset_id:
+                  type: string
+                  description: ID of the asset
+                amt:
+                  type: integer
+                  description: Amount to receive
+              required:
+                - asset_id
+                - amt
+      responses:
+        '200':
+          description: Invoice generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invoice:
+                    type: string
+                    description: Invoice to receive assets
+        '401':
+          description: Unauthorized
+
+securitySchemes:
+  bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
