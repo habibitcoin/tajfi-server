@@ -21,18 +21,57 @@ func SendStart(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request payload",
 		})
-	}
-	if err := c.Validate(&payload); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Validation failed",
-		})
-	}
+	} /*
+		if err := c.Validate(&payload); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Validation failed",
+			})
+		}*/
 
 	// Extract config from context
 	cfg := config.GetConfig(c.Request().Context())
 
 	// Call the Tapd service to fund the PSBT
 	fundedPsbt, err := tapd.FundVirtualPSBT(cfg.TapdHost, cfg.TapdMacaroon, payload.Invoice)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, fundedPsbt)
+}
+
+// SendCompletePayload defines the request payload structure for /send/complete.
+type SendCompletePayload struct {
+	PSBT string `json:"psbt" validate:"required"`
+}
+
+// SendComplete completes the send transaction by calling Tapd and returning the transaction ID
+func SendComplete(c echo.Context) error {
+	// Parse the request payload
+	var payload SendCompletePayload
+	if err := c.Bind(&payload); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request payload",
+		})
+	} /*
+		if err := c.Validate(&payload); err != nil	{
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Validation failed",
+			})
+		}*/
+	// Extract config from context
+	cfg := config.GetConfig(c.Request().Context())
+
+	params := tapd.AnchorVirtualPSBTParams{
+		VirtualPSBTs: []string{payload.PSBT},
+		TapdHost:     cfg.TapdHost,
+		Macaroon:     cfg.TapdMacaroon,
+	}
+
+	// Call the Tapd service to fund the PSBT
+	fundedPsbt, err := tapd.AnchorVirtualPSBT(params)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

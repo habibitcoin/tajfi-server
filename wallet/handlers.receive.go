@@ -26,13 +26,9 @@ type RequestPayload struct {
 
 // StartSendAsset initiates a send transaction by calling the service.
 func ReceiveAsset(c echo.Context) error {
+	ctx := c.Request().Context()
+	pubKey := ctx.Value("public_key").(string)
 	// Extract public key from JWT
-	pubKey, ok := getPublicKeyFromContext(c.Request().Context())
-	if !ok {
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "Public key not found",
-		})
-	}
 
 	// Bind and validate the request payload
 	var payload RequestPayload
@@ -41,11 +37,12 @@ func ReceiveAsset(c echo.Context) error {
 			"error": "Invalid request payload",
 		})
 	}
-	if err := c.Validate(&payload); err != nil {
+	/*if err := c.Validate(&payload); err != nil {
+		log.Println(payload)
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Validation failed",
 		})
-	}
+	}*/
 
 	// Extract config from context
 	cfg := config.GetConfig(c.Request().Context())

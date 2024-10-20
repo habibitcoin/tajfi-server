@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 
@@ -52,8 +53,10 @@ func AuthMiddleware(secret string) echo.MiddlewareFunc {
 
 			publicKey, _ := claims["public_key"].(string)
 
+			log.Println("Public key:", publicKey)
+
 			// Add the public key to the request context
-			ctx := context.WithValue(c.Request().Context(), pubKeyCtxKey, publicKey)
+			ctx := context.WithValue(c.Request().Context(), "public_key", publicKey)
 			c.SetRequest(c.Request().WithContext(ctx))
 
 			return next(c)

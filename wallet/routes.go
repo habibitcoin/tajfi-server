@@ -19,7 +19,7 @@ func RegisterWalletRoutes(e *echo.Echo, cfg *config.Config) {
 
 	walletGroup.GET("", GetWallet)
 	walletGroup.POST("/send/start", SendStart)
-	//walletGroup.POST("/send", SendAsset)
+	walletGroup.POST("/send/complete", SendComplete)
 	//walletGroup.GET("/balances", GetBalances)
 	//walletGroup.GET("/transactions", GetTransactions)
 	//walletGroup.GET("/transaction/:id", GetTransaction)

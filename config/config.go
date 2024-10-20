@@ -12,7 +12,7 @@ import (
 type Config struct {
 	LNDHost      string `form:"LNDHost"`
 	TapdHost     string `form:"TapdHost"`
-	LNDMacaroon  string `form:"Macaroon"`
+	LNDMacaroon  string `form:"LNDMacaroon"`
 	TapdMacaroon string `form:"TapdMacaroon"`
 
 	JWTSecret string `form:"JWTSecret"`
@@ -25,6 +25,7 @@ func (configs Config) GetConfigMap() (configMap map[string]string) {
 }
 
 func GetConfig(ctx context.Context) (configs *Config) {
+	ctx, _ = LoadConfig(ctx)
 	return ctx.Value("configs").(*Config)
 }
 
@@ -41,7 +42,7 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 	configs := &Config{
 		LNDHost:      os.Getenv("LNDHost"),
 		TapdHost:     os.Getenv("TapdHost"),
-		LNDMacaroon:  os.Getenv("Macaroon"),
+		LNDMacaroon:  os.Getenv("LNDMacaroon"),
 		TapdMacaroon: os.Getenv("TapdMacaroon"),
 		JWTSecret:    os.Getenv("JWTSecret"),
 	}
