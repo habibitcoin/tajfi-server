@@ -43,6 +43,72 @@ paths:
         '401':
           description: Unauthorized
 
+    /wallet/send/decode:
+      post:
+        summary: Decode a Taproot Asset address
+        security:
+          - bearerAuth: []
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  address:
+                    type: string
+                    description: The Taproot Asset address to decode.
+                required:
+                  - address
+        responses:
+          '200':
+            description: Decoded Taproot Asset information
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    encoded:
+                      type: string
+                      description: The bech32 encoded Taproot Asset address.
+                    asset_id:
+                      type: string
+                      description: The asset ID that uniquely identifies the asset.
+                    asset_type:
+                      type: string
+                      description: The type of the asset.
+                    amount:
+                      type: string
+                      description: The total amount of the asset stored in this Taproot Asset UTXO.
+                    group_key:
+                      type: string
+                      description: The group key of the asset (if it exists).
+                    script_key:
+                      type: string
+                      description: The specific script key the asset must commit to for ownership transfer.
+                    internal_key:
+                      type: string
+                      description: The internal key used for the on-chain output.
+                    tapscript_sibling:
+                      type: string
+                      description: Optional serialized tapscript sibling preimage for additional Taproot paths.
+                    taproot_output_key:
+                      type: string
+                      description: The tweaked internal key that represents the on-chain output key.
+                    proof_courier_addr:
+                      type: string
+                      description: The address of the proof courier service used in proof transfer.
+                    asset_version:
+                      type: string
+                      description: The asset version of the address.
+                    address_version:
+                      type: string
+                      description: The version of the address.
+          '401':
+            description: Unauthorized
+          '500':
+            description: Internal Server Error
+
   /wallet/send/start:
     post:
       summary: Start sending an asset
@@ -75,6 +141,64 @@ paths:
           description: Unauthorized
         '500':
           description: Internal Server Error
+
+    /wallet/send/complete:
+      post:
+        summary: Complete sending an asset
+        security:
+          - bearerAuth: []
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  psbt:
+                    type: string
+                    description: The signed PSBT hex
+                required:
+                  - psbt
+        responses:
+          '200':
+            description: Asset transfer completed successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    transfer_timestamp:
+                      type: string
+                      description: Timestamp of the asset transfer
+                    anchor_tx_hash:
+                      type: string
+                      description: Hash of the anchor transaction
+                    anchor_tx_height_hint:
+                      type: integer
+                      description: Anchor transaction height hint
+                    anchor_tx_chain_fees:
+                      type: string
+                      description: Fees for the anchor transaction
+                    inputs:
+                      type: array
+                      items:
+                        type: object
+                        additionalProperties: true
+                      description: Inputs used in the transfer
+                    outputs:
+                      type: array
+                      items:
+                        type: object
+                        additionalProperties: true
+                      description: Outputs from the transfer
+                    anchor_tx_block_hash:
+                      type: object
+                      additionalProperties: true
+                      description: Block hash of the anchor transaction
+          '401':
+            description: Unauthorized
+          '500':
+            description: Internal Server Error
 
   /wallet/receive:
     post:

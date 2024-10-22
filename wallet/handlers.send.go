@@ -8,6 +8,35 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type SendDecodePayload struct {
+	Address string `json:"address" validate:"required"`
+}
+
+// DecodeAddress handles decoding of Taproot Asset addresses
+func DecodeAddress(c echo.Context) error {
+	var payload SendDecodePayload
+	if err := c.Bind(&payload); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
+	}
+	/*
+		if err := c.Validate(&payload); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Validation failed",
+			})
+		}*/
+
+	// Extract config from context
+	cfg := config.GetConfig(c.Request().Context())
+
+	// Call the tapd package's DecodeAddr method
+	decoded, err := tapd.DecodeAddr(cfg.TapdHost, cfg.TapdMacaroon, payload.Address)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to decode address")
+	}
+
+	return c.JSON(http.StatusOK, decoded)
+}
+
 // SendStartPayload defines the request payload structure for /send/start.
 type SendStartPayload struct {
 	Invoice string `json:"invoice" validate:"required"`

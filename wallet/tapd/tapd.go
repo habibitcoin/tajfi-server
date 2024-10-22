@@ -9,6 +9,65 @@ import (
 	"tajfi-server/wallet/lnd"
 )
 
+// DecodeAddrResponse represents the full decoded asset response from Tapd.
+type DecodeAddrResponse struct {
+	Encoded          string `json:"encoded"`
+	AssetID          string `json:"asset_id"`
+	AssetType        string `json:"asset_type"`
+	Amount           string `json:"amount"`
+	GroupKey         string `json:"group_key"`
+	ScriptKey        string `json:"script_key"`
+	InternalKey      string `json:"internal_key"`
+	TapscriptSibling string `json:"tapscript_sibling"`
+	TaprootOutputKey string `json:"taproot_output_key"`
+	ProofCourierAddr string `json:"proof_courier_addr"`
+	AssetVersion     string `json:"asset_version"`
+	AddressVersion   string `json:"address_version"`
+}
+
+// DecodeAddr decodes a Taproot Asset address into the full asset response.
+func DecodeAddr(tapdHost, macaroon, address string) (*DecodeAddrResponse, error) {
+	url := fmt.Sprintf("https://%s/v1/taproot-assets/addrs/decode", tapdHost)
+
+	// Prepare the request payload.
+	payload := map[string]string{"addr": address}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	// Disable TLS verification (for testing).
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+	// Create the HTTP request.
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Grpc-Metadata-macaroon", macaroon)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Execute the HTTP request.
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("tapd RPC error: %s", resp.Status)
+	}
+
+	// Parse the response into DecodeAddrResponse.
+	var decodedAddr DecodeAddrResponse
+	if err := json.NewDecoder(resp.Body).Decode(&decodedAddr); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	return &decodedAddr, nil
+}
+
 type NewAddressPayload struct {
 	AssetID     string                  `json:"asset_id"`
 	Amt         int                     `json:"amt"`

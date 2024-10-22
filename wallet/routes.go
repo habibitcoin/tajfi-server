@@ -18,6 +18,7 @@ func RegisterWalletRoutes(e *echo.Echo, cfg *config.Config) {
 	walletGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 
 	walletGroup.GET("", GetWallet)
+	walletGroup.POST("/send/decode", DecodeAddress)
 	walletGroup.POST("/send/start", SendStart)
 	walletGroup.POST("/send/complete", SendComplete)
 	//walletGroup.GET("/balances", GetBalances)
