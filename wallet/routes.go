@@ -21,8 +21,8 @@ func RegisterWalletRoutes(e *echo.Echo, cfg *config.Config) {
 	walletGroup.POST("/send/decode", DecodeAddress)
 	walletGroup.POST("/send/start", SendStart)
 	walletGroup.POST("/send/complete", SendComplete)
-	//walletGroup.GET("/balances", GetBalances)
-	//walletGroup.GET("/transactions", GetTransactions)
+	walletGroup.GET("/balances", GetBalances)
+	walletGroup.GET("/transfers", GetTransfers)
 	//walletGroup.GET("/transaction/:id", GetTransaction)
 	walletGroup.POST("/receive", ReceiveAsset) // Generate an invoice to receive an asset
 }

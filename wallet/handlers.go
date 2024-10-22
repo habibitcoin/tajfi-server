@@ -3,6 +3,7 @@ package wallet
 import (
 	"net/http"
 	"tajfi-server/config"
+	"tajfi-server/wallet/tapd"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
@@ -48,6 +49,28 @@ func ConnectWallet(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{
 		"token": signedToken,
 	})
+}
+
+func GetBalances(c echo.Context) error {
+	// Extract config from context
+	cfg := config.GetConfig(c.Request().Context())
+
+	balances, err := tapd.GetBalances(cfg.TapdHost, cfg.TapdMacaroon)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch balances from tapd: "+err.Error())
+	}
+	return c.JSON(http.StatusOK, balances)
+}
+
+func GetTransfers(c echo.Context) error {
+	// Extract config from context
+	cfg := config.GetConfig(c.Request().Context())
+
+	balances, err := tapd.GetTransfers(cfg.TapdHost, cfg.TapdMacaroon)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch balances from tapd: "+err.Error())
+	}
+	return c.JSON(http.StatusOK, balances)
 }
 
 func GetWallet(c echo.Context) error {
