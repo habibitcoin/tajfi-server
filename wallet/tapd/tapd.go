@@ -177,28 +177,38 @@ type TransferInput struct {
 	Amount      string `json:"amount"`
 }
 
+// Anchor represents the nested anchor object within TransferOutput.
+type Anchor struct {
+	Outpoint         string `json:"outpoint"`
+	Value            string `json:"value"`
+	InternalKey      string `json:"internal_key"`
+	TaprootAssetRoot string `json:"taproot_asset_root"`
+	MerkleRoot       string `json:"merkle_root"`
+	TapscriptSibling string `json:"tapscript_sibling"`
+	NumPassiveAssets int    `json:"num_passive_assets"`
+}
+
 type TransferOutput struct {
-	Anchor              map[string]interface{} `json:"anchor"`
-	ScriptKey           string                 `json:"script_key"`
-	ScriptKeyIsLocal    bool                   `json:"script_key_is_local"`
-	Amount              string                 `json:"amount"`
-	NewProofBlob        string                 `json:"new_proof_blob"`
-	SplitCommitRootHash string                 `json:"split_commit_root_hash"`
-	OutputType          string                 `json:"output_type"`
-	AssetVersion        string                 `json:"asset_version"`
-	LockTime            string                 `json:"lock_time"`
-	RelativeLockTime    string                 `json:"relative_lock_time"`
-	ProofDeliveryStatus string                 `json:"proof_delivery_status"`
+	Anchor              Anchor `json:"anchor"`
+	ScriptKey           string `json:"script_key"`
+	ScriptKeyIsLocal    bool   `json:"script_key_is_local"`
+	Amount              string `json:"amount"`
+	NewProofBlob        string `json:"new_proof_blob"`
+	SplitCommitRootHash string `json:"split_commit_root_hash"`
+	OutputType          string `json:"output_type"`
+	AssetVersion        string `json:"asset_version"`
+	LockTime            string `json:"lock_time"`
+	RelativeLockTime    string `json:"relative_lock_time"`
+	ProofDeliveryStatus string `json:"proof_delivery_status,omitempty"`
 }
 
 type AssetTransferResponse struct {
-	TransferTimestamp  string                 `json:"transfer_timestamp"`
-	AnchorTxHash       string                 `json:"anchor_tx_hash"`
-	AnchorTxHeightHint int                    `json:"anchor_tx_height_hint"`
-	AnchorTxChainFees  string                 `json:"anchor_tx_chain_fees"`
-	Inputs             []TransferInput        `json:"inputs"`
-	Outputs            []TransferOutput       `json:"outputs"`
-	AnchorTxBlockHash  map[string]interface{} `json:"anchor_tx_block_hash"`
+	TransferTimestamp  string           `json:"transfer_timestamp"`
+	AnchorTxHash       string           `json:"anchor_tx_hash"`
+	AnchorTxHeightHint int              `json:"anchor_tx_height_hint"`
+	AnchorTxChainFees  string           `json:"anchor_tx_chain_fees"`
+	Inputs             []TransferInput  `json:"inputs"`
+	Outputs            []TransferOutput `json:"outputs"`
 }
 
 func AnchorVirtualPSBT(params AnchorVirtualPSBTParams) (*AssetTransferResponse, error) {
@@ -295,14 +305,18 @@ func GetBalances(tapdHost, macaroon string) (*WalletBalancesResponse, error) {
 	return &balances, nil
 }
 
-func GetTransfers(tapdHost, macaroon string) ([]AssetTransferResponse, error) {
+type AssetTransfersResponse struct {
+	Transfers []AssetTransferResponse `json:"transfers"`
+}
+
+func GetTransfers(tapdHost, macaroon string) (transfers AssetTransfersResponse, err error) {
 	url := fmt.Sprintf("https://%s/v1/taproot-assets/assets/transfers", tapdHost)
 	// Disable TLS verification (for testing).
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	// Create the HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return transfers, err
 	}
 	req.Header.Set("Grpc-Metadata-macaroon", macaroon)
 	req.Header.Set("Content-Type", "application/json")
@@ -311,18 +325,16 @@ func GetTransfers(tapdHost, macaroon string) ([]AssetTransferResponse, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, nil
+		return transfers, nil
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("tapd daemon error: %s", resp.Status)
+		return transfers, fmt.Errorf("tapd daemon error: %s", resp.Status)
 	}
 
-	// Decode the response body into WalletBalancesResponse
-	var transfers []AssetTransferResponse
 	if err := json.NewDecoder(resp.Body).Decode(&transfers); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %v", err)
+		return transfers, fmt.Errorf("failed to decode response: %v", err)
 	}
 
 	return transfers, nil

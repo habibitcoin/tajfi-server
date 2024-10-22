@@ -41,10 +41,6 @@ components:
           items:
             $ref: '#/components/schemas/TransferOutput'
           description: Outputs from the transfer.
-        anchor_tx_block_hash:
-          type: object
-          additionalProperties: true
-          description: Block hash of the anchor transaction.
 
     TransferInput:
       type: object
@@ -66,7 +62,7 @@ components:
       type: object
       properties:
         anchor:
-          type: object
+          $ref: '#/components/schemas/Anchor'
           description: The anchor details of the transfer output.
         script_key:
           type: string
@@ -97,7 +93,32 @@ components:
           description: Relative lock time for the output.
         proof_delivery_status:
           type: string
-          description: Status of the proof delivery.
+          description: Status of the proof delivery (optional).
+
+    Anchor:
+      type: object
+      properties:
+        outpoint:
+          type: string
+          description: The outpoint of the anchor.
+        value:
+          type: string
+          description: Value associated with the anchor.
+        internal_key:
+          type: string
+          description: Internal key for the anchor.
+        taproot_asset_root:
+          type: string
+          description: Taproot asset root hash.
+        merkle_root:
+          type: string
+          description: Merkle root associated with the anchor.
+        tapscript_sibling:
+          type: string
+          description: Tapscript sibling (optional).
+        num_passive_assets:
+          type: integer
+          description: Number of passive assets.
 
 paths:
   /wallet/connect:
@@ -179,6 +200,28 @@ paths:
                         balance:
                           type: string
                           description: The current balance of the asset in the wallet.
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+
+  /wallet/transfers:
+    get:
+      summary: Retrieve asset transfer history
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of asset transfers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transfers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transfer'
         '401':
           description: Unauthorized
         '500':
@@ -308,25 +351,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Transfer'
-        '401':
-          description: Unauthorized
-        '500':
-          description: Internal Server Error
-
-  /wallet/transfers:
-    get:
-      summary: Retrieve asset transfer history
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of asset transfers
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Transfer'
         '401':
           description: Unauthorized
         '500':
