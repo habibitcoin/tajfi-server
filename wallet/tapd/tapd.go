@@ -263,7 +263,7 @@ type WalletBalancesResponse struct {
 
 // GetBalances interacts with the tapd daemon to retrieve wallet balances.
 func GetBalances(tapdHost, macaroon string) (*WalletBalancesResponse, error) {
-	url := fmt.Sprintf("https://%s/v1/taproot-assets/assets/balance", tapdHost)
+	url := fmt.Sprintf("https://%s/v1/taproot-assets/assets/balance?asset_id=true&include_leased=true", tapdHost)
 	// Disable TLS verification (for testing).
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	// Create the HTTP request

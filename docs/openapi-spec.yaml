@@ -5,7 +5,7 @@ info:
   description: API for managing Taproot assets using the Tajfi wallet.
 
 servers:
-  - url: http://localhost:8080/api/v1
+  - url: http://localhost:18881/api/v1
     description: Local development server
 
 components:
@@ -137,6 +137,8 @@ paths:
   /wallet/balances:
     get:
       summary: Get wallet asset balances
+      security:
+        - bearerAuth: []
       description: Retrieve the current asset balances for all assets in the wallet.
       responses:
         '200':
