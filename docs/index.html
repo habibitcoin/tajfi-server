@@ -1,10 +1,24 @@
-<!DOCTYPE html>
 <html>
-<head>
-  <title>Tajfi Wallet API Documentation</title>
-  <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
-</head>
-<body>
-  <redoc spec-url="./openapi-spec.yaml"></redoc>
-</body>
+    <head>    
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.11.1/swagger-ui.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.11.1/swagger-ui-bundle.js"></script>
+        <script>
+
+            function render() {
+                var ui = SwaggerUIBundle({
+                    url:  `./openapi-spec.yaml`,
+                    dom_id: '#swagger-ui',
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                        SwaggerUIBundle.SwaggerUIStandalonePreset
+                    ]
+                });
+            }
+
+        </script>
+    </head>
+
+    <body onload="render()">
+        <div id="swagger-ui"></div>
+    </body>
 </html>
