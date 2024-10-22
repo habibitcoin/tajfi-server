@@ -7,6 +7,7 @@ import (
 	"tajfi-server/wallet"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -16,6 +17,12 @@ func main() {
 		log.Fatal("Failed to load configuration:", err)
 	}
 	e := echo.New()
+
+	// Enable CORS for all domains
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE},
+	}))
 
 	// Serve static assets (like CSS and JS) from /docs/swagger-ui
 	e.Static("/docs", "docs")
