@@ -112,8 +112,15 @@ func CallNewAddress(tapdHost, macaroon string, payload NewAddressPayload) (map[s
 	return result, nil
 }
 
+type FundVirtualPSBTResponse struct {
+	FundedPSBT        string   `json:"funded_psbt"`
+	ChangeOutputIndex int      `json:"change_output_index"`
+	PassiveAssetPsbts []string `json:"passive_asset_psbts"`
+	SighashHexToSign  string   `json:"sighash_hex_to_sign"`
+}
+
 // FundVirtualPSBT sends a request to Tapd to fund a virtual PSBT using the invoice.
-func FundVirtualPSBT(tapdHost, macaroon, invoice string) (map[string]interface{}, error) {
+func FundVirtualPSBT(tapdHost, macaroon, invoice string) (fundedPsbt *FundVirtualPSBTResponse, err error) {
 	url := fmt.Sprintf("https://%s/v1/taproot-assets/wallet/virtual-psbt/fund", tapdHost)
 
 	// Disable TLS verification (for testing).
@@ -153,7 +160,55 @@ func FundVirtualPSBT(tapdHost, macaroon, invoice string) (map[string]interface{}
 	}
 
 	// Parse the response
-	var fundedPsbt map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&fundedPsbt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse response: %v", err)
+	}
+
+	return fundedPsbt, nil
+}
+
+type SignVirtualPSBTResponse struct {
+	SignedPSBT string `json:"signed_psbt"`
+}
+
+// SignVirtualPSBT sends a request to Tapd to sign a virtual PSBT
+func SignVirtualPSBT(tapdHost, macaroon, psbt string) (fundedPsbt *SignVirtualPSBTResponse, err error) {
+	url := fmt.Sprintf("https://%s/v1/taproot-assets/wallet/virtual-psbt/sign", tapdHost)
+
+	// Disable TLS verification (for testing).
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+	// Prepare the payload
+	requestBody := map[string]interface{}{
+		"funded_psbt": psbt,
+	}
+	payloadBytes, _ := json.Marshal(requestBody)
+
+	// Disable TLS verification (for testing purposes)
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+	// Create the HTTP request
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Grpc-Metadata-macaroon", macaroon)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Execute the HTTP request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Tapd RPC error: %s", resp.Status)
+	}
+
+	// Parse the response
 	err = json.NewDecoder(resp.Body).Decode(&fundedPsbt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse response: %v", err)

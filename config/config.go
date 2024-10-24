@@ -16,6 +16,8 @@ type Config struct {
 	TapdMacaroon string `form:"TapdMacaroon"`
 
 	JWTSecret string `form:"JWTSecret"`
+
+	TaprootSigsDir string `form:"TaprootSigsDir"`
 }
 
 func (configs Config) GetConfigMap() (configMap map[string]string) {
@@ -40,11 +42,12 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 	}
 
 	configs := &Config{
-		LNDHost:      os.Getenv("LNDHost"),
-		TapdHost:     os.Getenv("TapdHost"),
-		LNDMacaroon:  os.Getenv("LNDMacaroon"),
-		TapdMacaroon: os.Getenv("TapdMacaroon"),
-		JWTSecret:    os.Getenv("JWTSecret"),
+		LNDHost:        os.Getenv("LNDHost"),
+		TapdHost:       os.Getenv("TapdHost"),
+		LNDMacaroon:    os.Getenv("LNDMacaroon"),
+		TapdMacaroon:   os.Getenv("TapdMacaroon"),
+		JWTSecret:      os.Getenv("JWTSecret"),
+		TaprootSigsDir: os.Getenv("TaprootSigsDir"),
 	}
 
 	ctx = context.WithValue(ctx, "configs", configs)

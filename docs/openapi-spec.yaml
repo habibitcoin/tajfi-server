@@ -319,6 +319,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  sighash_hex_to_sign:
+                    type: string
+                    description: The sighash hex to provide a schnorr signature over
                   funded_psbt:
                     type: string
                     description: The funded PSBT hex
@@ -339,9 +342,12 @@ paths:
             schema:
               type: object
               properties:
+                signature_hex:
+                  type: string
+                  description: The signature hex to derived from the sighash of the /start step.
                 psbt:
                   type: string
-                  description: The signed PSBT hex.
+                  description: The same unsigned PSBT hex from /start step.
               required:
                 - psbt
       responses:

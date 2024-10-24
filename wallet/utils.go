@@ -3,7 +3,10 @@ package wallet
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"math/big"
+	"os"
 
 	btcec "github.com/btcsuite/btcd/btcec/v2"
 )
@@ -44,4 +47,36 @@ func CompressPubKey(pubKeyHex string) (string, error) {
 	compressedKey := append([]byte{prefix}, pubKeyBytes...)
 
 	return hex.EncodeToString(compressedKey), nil
+}
+
+// Helper function to read the override signature or sighash from a file.
+func ReadFile(filename string) (string, error) {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// If the file doesn't exist, return an empty string.
+			return "", nil
+		}
+		return "", err
+	}
+	return string(data), nil
+}
+
+// Save sigHash to a file named sighash.hex, clearing any previous contents.
+func WriteSignatureToFile(filename string, signatureHex string) error {
+	// Open the file with write-only mode, create it if it doesn't exist, and truncate it to clear existing content.
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open/create file: %w", err)
+	}
+	defer file.Close()
+
+	// Write the sigHash as a hex string to the file.
+	_, err = file.WriteString(signatureHex)
+	if err != nil {
+		return fmt.Errorf("failed to write to file: %w", err)
+	}
+
+	fmt.Println("Signature successfully written to " + filename)
+	return nil
 }
