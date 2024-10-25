@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"math/big"
 	"os"
+	"strings"
+	"tajfi-server/wallet/tapd"
 
 	btcec "github.com/btcsuite/btcd/btcec/v2"
 )
@@ -79,4 +81,40 @@ func WriteSignatureToFile(filename string, signatureHex string) error {
 
 	fmt.Println("Signature successfully written to " + filename)
 	return nil
+}
+
+func FilterOwnedUtxos(utxos *tapd.GetUtxosResponse, pubKey string) (ownedUtxos tapd.PrevIds) {
+	for _, utxo := range utxos.ManagedUtxos {
+		for _, asset := range utxo.Assets {
+			if asset.ScriptKey == ("02" + pubKey) {
+				txid, vout, err := parseOutPoint(utxo.Outpoint)
+				if err != nil {
+					fmt.Println("Error parsing outpoint:", err)
+					continue
+				}
+				ownedUtxos.Inputs = append(ownedUtxos.Inputs, tapd.PrevId{
+					Outpoint:  tapd.Outpoint{Txid: txid, OutputIndex: vout},
+					AssetId:   asset.AssetGenesis.AssetID,
+					ScriptKey: asset.ScriptKey,
+				})
+				break
+			}
+		}
+	}
+	return ownedUtxos
+}
+
+func parseOutPoint(outPoint string) (txid string, vout int, err error) {
+	parts := strings.Split(outPoint, ":")
+	if len(parts) != 2 {
+		return "", 0, fmt.Errorf("invalid out_point format")
+	}
+
+	txid = parts[0]
+	_, err = fmt.Sscanf(parts[1], "%d", &vout)
+	if err != nil {
+		return "", 0, fmt.Errorf("invalid vout format: %v", err)
+	}
+
+	return txid, vout, nil
 }

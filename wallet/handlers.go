@@ -1,7 +1,10 @@
 package wallet
 
 import (
+	"fmt"
+	"log"
 	"net/http"
+	"strconv"
 	"tajfi-server/config"
 	"tajfi-server/wallet/tapd"
 	"time"
@@ -53,13 +56,60 @@ func ConnectWallet(c echo.Context) error {
 
 func GetBalances(c echo.Context) error {
 	// Extract config from context
-	cfg := config.GetConfig(c.Request().Context())
+	ctx := c.Request().Context()
+	cfg := config.GetConfig(ctx)
+	pubKey := ctx.Value("public_key").(string)
 
-	balances, err := tapd.GetBalances(cfg.TapdHost, cfg.TapdMacaroon)
+	utxos, err := tapd.GetUtxos(cfg.TapdHost, cfg.TapdMacaroon)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch balances from tapd: "+err.Error())
 	}
+
+	balances, err := constructWalletBalancesResponse(utxos, pubKey)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to construct wallet balances: "+err.Error())
+	}
 	return c.JSON(http.StatusOK, balances)
+}
+
+// ConstructWalletBalancesResponse constructs a WalletBalancesResponse by finding
+// every Asset with a ScriptKey matching the provided value, summing up their amounts,
+// and grouping them by AssetGenesis.
+func constructWalletBalancesResponse(utxos *tapd.GetUtxosResponse, scriptKey string) (*tapd.WalletBalancesResponse, error) {
+	assetBalances := make(map[string]tapd.AssetBalance)
+
+	for _, utxo := range utxos.ManagedUtxos {
+		for _, asset := range utxo.Assets {
+			genesisID := asset.AssetGenesis.AssetID
+			amount := 0
+
+			if asset.ScriptKey == ("02" + scriptKey) {
+
+				log.Println(asset)
+				var err error
+				amount, err = strconv.Atoi(asset.Amount)
+				if err != nil {
+					return nil, fmt.Errorf("invalid amount: %v", err)
+				}
+			}
+
+			if balance, exists := assetBalances[genesisID]; exists {
+				existingAmount, err := strconv.Atoi(balance.Balance)
+				if err != nil {
+					return nil, fmt.Errorf("invalid existing balance: %v", err)
+				}
+				balance.Balance = strconv.Itoa(existingAmount + amount)
+				assetBalances[genesisID] = balance
+			} else {
+				assetBalances[genesisID] = tapd.AssetBalance{
+					AssetGenesis: asset.AssetGenesis,
+					Balance:      strconv.Itoa(amount),
+				}
+			}
+		}
+	}
+
+	return &tapd.WalletBalancesResponse{AssetBalances: assetBalances}, nil
 }
 
 func GetTransfers(c echo.Context) error {

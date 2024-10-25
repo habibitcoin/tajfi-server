@@ -48,6 +48,8 @@ type SendStartPayload struct {
 func SendStart(c echo.Context) error {
 	// Parse the request payload
 	var payload SendStartPayload
+	ctx := c.Request().Context()
+	pubKey := ctx.Value("public_key").(string)
 	if err := c.Bind(&payload); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request payload",
@@ -62,8 +64,16 @@ func SendStart(c echo.Context) error {
 	// Extract config from context
 	cfg := config.GetConfig(c.Request().Context())
 
+	utxos, err := tapd.GetUtxos(cfg.TapdHost, cfg.TapdMacaroon)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch balances from tapd: "+err.Error())
+	}
+
+	myUtxos := FilterOwnedUtxos(utxos, pubKey)
+	log.Printf("Found %d UTXOs for pubkey %s", len(myUtxos.Inputs), pubKey)
 	// Call the Tapd service to fund the PSBT
-	fundedPsbt, err := tapd.FundVirtualPSBT(cfg.TapdHost, cfg.TapdMacaroon, payload.Invoice)
+	// TEMPORARILY DISABLE INPUT SELECTION
+	fundedPsbt, err := tapd.FundVirtualPSBT(cfg.TapdHost, cfg.TapdMacaroon, payload.Invoice, tapd.PrevIds{})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
