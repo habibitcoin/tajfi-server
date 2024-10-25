@@ -2,8 +2,10 @@ package wallet
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"tajfi-server/config"
+	"tajfi-server/wallet/tapd"
 
 	"github.com/labstack/echo/v4"
 )
@@ -63,6 +65,16 @@ func ReceiveAsset(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
+	}
+
+	// this should move to the service.. we gotta clean up
+
+	// if demo mode is enabled, and the amount is the same as demoAmount, pay it
+	if cfg.DemoMode && payload.Amount == cfg.DemoAmount {
+		_, err = tapd.SendAssets(cfg.DemoTapdHost, cfg.DemoTapdMacaroon, response["encoded"].(string))
+		if err != nil {
+			log.Println("Failed to send assets", err)
+		}
 	}
 
 	return c.JSON(http.StatusOK, response)

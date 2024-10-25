@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -18,6 +19,11 @@ type Config struct {
 	JWTSecret string `form:"JWTSecret"`
 
 	TaprootSigsDir string `form:"TaprootSigsDir"`
+
+	DemoMode         bool   `form:"DemoMode"`
+	DemoAmount       int    `form:"DemoAmount"`
+	DemoTapdHost     string `form:"DemoTapdHost"`
+	DemoTapdMacaroon string `form:"DemoTapdMacaroon"`
 }
 
 func (configs Config) GetConfigMap() (configMap map[string]string) {
@@ -41,13 +47,33 @@ func LoadConfig(ctx context.Context) (context.Context, error) {
 		}
 	}
 
+	demoModeStr := os.Getenv("DemoMode")
+	demoMode := false
+	if demoModeStr == "true" {
+		demoMode = true
+	}
+
+	demoAmountStr := os.Getenv("DemoAmount")
+	demoAmount := 0
+	if demoAmountStr != "" {
+		// convert string to int
+		demoAmount, err = strconv.Atoi(demoAmountStr)
+		if err != nil {
+			demoMode = false
+		}
+	}
+
 	configs := &Config{
-		LNDHost:        os.Getenv("LNDHost"),
-		TapdHost:       os.Getenv("TapdHost"),
-		LNDMacaroon:    os.Getenv("LNDMacaroon"),
-		TapdMacaroon:   os.Getenv("TapdMacaroon"),
-		JWTSecret:      os.Getenv("JWTSecret"),
-		TaprootSigsDir: os.Getenv("TaprootSigsDir"),
+		LNDHost:          os.Getenv("LNDHost"),
+		TapdHost:         os.Getenv("TapdHost"),
+		LNDMacaroon:      os.Getenv("LNDMacaroon"),
+		TapdMacaroon:     os.Getenv("TapdMacaroon"),
+		JWTSecret:        os.Getenv("JWTSecret"),
+		TaprootSigsDir:   os.Getenv("TaprootSigsDir"),
+		DemoMode:         demoMode,
+		DemoAmount:       demoAmount,
+		DemoTapdHost:     os.Getenv("DemoTapdHost"),
+		DemoTapdMacaroon: os.Getenv("DemoTapdMacaroon"),
 	}
 
 	ctx = context.WithValue(ctx, "configs", configs)

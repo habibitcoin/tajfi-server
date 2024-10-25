@@ -1,7 +1,7 @@
 
 # Project README
 
-This project is a Go-based application that interacts with Taproot Assets to allow operating a pocket universe.
+This project is a Go-based application that interacts with Taproot Assets to allow operating a pocket universe. It includes various components and tests to ensure the correct functionality of the wallet service and other features. A demo server is available at [https://demo.tajfi.com](https://demo.tajfi.com) for testing purposes and is configured to automatically fund receive invoices with an amount of 10 units.
 
 It is intended to be run in tandem with the frontend web-app, [tajfi-web](https://github.com/topether21/tajfi-web), which enables users to authenticate with their Nostr pubkey.
 
@@ -23,6 +23,8 @@ To set up and run this project, you need the following:
 -  This fork has custom logic in place that allows signatures to be communicated between `tapd` and `tajfi-server`
 
 3. Configuration: Set the TaprootSigsDir to match the directory where the  tapd binary is run from. This ensures that the application can correctly locate and interact with the Taproot Assets Daemon.
+
+- Optionally configure `DemoMode` to true and configure an external `DemoTapdNode` to fund all receive invoices equal to `DemoAmount`.
 
 ## Setup Instructions
 
