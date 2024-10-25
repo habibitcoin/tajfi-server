@@ -1,7 +1,7 @@
 
 # Project README
 
-This project is a Go-based application that interacts with Taproot Assets to allow operating a pocket universe. It includes various components and tests to ensure the correct functionality of the wallet service and other features. A demo server is available at [https://demo.tajfi.com](https://demo.tajfi.com) for testing purposes and is configured to automatically fund receive invoices with an amount of 10 units.
+This project is a Go-based application that interacts with Taproot Assets to allow operating a pocket universe. A demo server is available at [https://demo.tajfi.com](https://demo.tajfi.com) for testing purposes and is configured to automatically fund receive invoices with an amount of 10 units.
 
 It is intended to be run in tandem with the frontend web-app, [tajfi-web](https://github.com/topether21/tajfi-web), which enables users to authenticate with their Nostr pubkey.
 
