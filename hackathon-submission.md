@@ -56,7 +56,7 @@ A Tajfi pocket universe operator has a few different ways to monetize their serv
 
 ### Demo Video 🎥
 
-[Link to your 1-minute demo video]
+https://www.loom.com/share/ea066baea4f540f8839f9c7baf825c35?sid=9852721e-0e8c-4f26-9acc-6d7e3b4b5f9e 
 
 
 ### GitHub Repository 📂
@@ -76,6 +76,8 @@ A Tajfi pocket universe operator has a few different ways to monetize their serv
 ### Future Plans 🔮
 
 Post-hackathon, the project aims to implement MuSig2 for secure the anchor Bitcoin UTXOs, ensuring that no single party can accidentally burn assets. We then plan to follow up with the implementation of the PSBT marketplace. Afterwards, we will explore additional improvements, such as Lightning Network support/Taproot Asset channels, and/or proof aggregation of vUTXOs to reduce the onchain footprint of Taproot Assets transactions.
+
+We also plan to finish the implementation of template inputs for the `FundVirtualPsbt` method in the Taproot Assets Daemon.
 
 ### Feedback for Organizers 📣
 
