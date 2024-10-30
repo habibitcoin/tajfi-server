@@ -69,11 +69,16 @@ func SendStart(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch balances from tapd: "+err.Error())
 	}
 
-	myUtxos := FilterOwnedUtxos(utxos, pubKey)
+	// Decode the address
+	decoded, err := tapd.DecodeAddr(cfg.TapdHost, cfg.TapdMacaroon, payload.Invoice)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to decode address")
+	}
+
+	myUtxos := FilterOwnedUtxos(utxos, pubKey, decoded.AssetID)
 	log.Printf("Found %d UTXOs for pubkey %s", len(myUtxos.Inputs), pubKey)
 	// Call the Tapd service to fund the PSBT
-	// TEMPORARILY DISABLE INPUT SELECTION
-	fundedPsbt, err := tapd.FundVirtualPSBT(cfg.TapdHost, cfg.TapdMacaroon, payload.Invoice, tapd.PrevIds{})
+	fundedPsbt, err := tapd.FundVirtualPSBT(cfg.TapdHost, cfg.TapdMacaroon, payload.Invoice, tapd.PrevIds{[]tapd.PrevId{myUtxos.Inputs[0]}})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
