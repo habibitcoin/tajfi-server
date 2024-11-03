@@ -95,7 +95,7 @@ type PrevId struct {
 	Outpoint  Outpoint `json:"outpoint"`
 	AssetId   string   `json:"id"`
 	ScriptKey string   `json:"script_key"`
-	Amount    int
+	Amount    int      `json:"-"`
 }
 
 // FundVirtualPSBT sends a request to Tapd to fund a virtual PSBT using the invoice.
