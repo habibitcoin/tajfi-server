@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"math/big"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 	"tajfi-server/wallet/tapd"
 
@@ -83,24 +85,34 @@ func WriteSignatureToFile(filename string, signatureHex string) error {
 	return nil
 }
 
-func FilterOwnedUtxos(utxos *tapd.GetUtxosResponse, pubKey string) (ownedUtxos tapd.PrevIds) {
+func FilterOwnedUtxos(utxos *tapd.GetUtxosResponse, pubKey string, assetId string) (ownedUtxos tapd.PrevIds) {
 	for _, utxo := range utxos.ManagedUtxos {
 		for _, asset := range utxo.Assets {
-			if asset.ScriptKey == ("02" + pubKey) {
+			if asset.ScriptKey == ("02"+pubKey) && asset.AssetGenesis.AssetID == assetId {
 				txid, vout, err := parseOutPoint(utxo.Outpoint)
 				if err != nil {
 					fmt.Println("Error parsing outpoint:", err)
+					continue
+				}
+				amount, err := strconv.Atoi(asset.Amount)
+				if err != nil {
+					fmt.Println("Error converting amount:", err)
 					continue
 				}
 				ownedUtxos.Inputs = append(ownedUtxos.Inputs, tapd.PrevId{
 					Outpoint:  tapd.Outpoint{Txid: txid, OutputIndex: vout},
 					AssetId:   asset.AssetGenesis.AssetID,
 					ScriptKey: asset.ScriptKey,
+					Amount:    amount,
 				})
 				break
 			}
 		}
 	}
+	// Sort the ownedUtxos.Inputs slice by Amount in descending order
+	sort.Slice(ownedUtxos.Inputs, func(i, j int) bool {
+		return ownedUtxos.Inputs[i].Amount > ownedUtxos.Inputs[j].Amount
+	})
 	return ownedUtxos
 }
 

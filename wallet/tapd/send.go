@@ -95,6 +95,7 @@ type PrevId struct {
 	Outpoint  Outpoint `json:"outpoint"`
 	AssetId   string   `json:"id"`
 	ScriptKey string   `json:"script_key"`
+	Amount    int      `json:"-"`
 }
 
 // FundVirtualPSBT sends a request to Tapd to fund a virtual PSBT using the invoice.
@@ -110,6 +111,7 @@ func FundVirtualPSBT(tapdHost, macaroon, invoice string, inputs PrevIds) (funded
 			"recipients": map[string]int{
 				invoice: 0, // Use the invoice as the recipient
 			},
+			"inputs": inputs.Inputs,
 		},
 	}
 	log.Println("Request body: ", requestBody)
