@@ -38,3 +38,9 @@ To set up and run this project, you need the following:
 
 3.  Configure Environment: Ensure that the  TaprootSigsDir environment variable is set to the directory where the  tapd binary is located.
 4. Begin the backend server by running `go run cmd/server.go`. Ensure the `tapd` daemon is also already running.
+
+## License
+
+This project is licensed under the MIT License with a Non-Commercial clause. You are free to use and modify this software for personal and non-commercial purposes. Commercial use is prohibited without explicit permission from the author.
+
+See the [LICENSE](./LICENSE) file for details.
