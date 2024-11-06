@@ -1,5 +1,14 @@
 package wallet
 
+type Transfer struct {
+	Txid      string `json:"txid"`
+	Timestamp string `json:"timestamp"`
+	Height    int    `json:"height"`
+	AssetID   string `json:"asset_id"`
+	Type      string `json:"type"`
+	Amount    uint64 `json:"amount"`
+}
+
 type Wallet struct {
 	Address string `json:"address"`
 	Balance int    `json:"balance"`

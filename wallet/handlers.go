@@ -55,10 +55,11 @@ func ConnectWallet(c echo.Context) error {
 }
 
 func GetBalances(c echo.Context) error {
-	// Extract config from context
-	ctx := c.Request().Context()
-	cfg := config.GetConfig(ctx)
-	pubKey := ctx.Value("public_key").(string)
+	var (
+		ctx    = c.Request().Context()
+		cfg    = config.GetConfig(ctx)
+		pubKey = ctx.Value("public_key").(string)
+	)
 
 	utxos, err := tapd.GetUtxos(cfg.TapdHost, cfg.TapdMacaroon)
 	if err != nil {
@@ -113,14 +114,18 @@ func constructWalletBalancesResponse(utxos *tapd.GetUtxosResponse, scriptKey str
 }
 
 func GetTransfers(c echo.Context) error {
-	// Extract config from context
-	cfg := config.GetConfig(c.Request().Context())
+	var (
+		ctx    = c.Request().Context()
+		cfg    = config.GetConfig(ctx)
+		pubKey = ctx.Value("public_key").(string)
+	)
 
-	balances, err := tapd.GetTransfers(cfg.TapdHost, cfg.TapdMacaroon)
+	tapdTransfers, err := tapd.GetTransfers(cfg.TapdHost, cfg.TapdMacaroon)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch balances from tapd: "+err.Error())
 	}
-	return c.JSON(http.StatusOK, balances)
+
+	return c.JSON(http.StatusOK, GetTransfersResponse(tapdTransfers, pubKey))
 }
 
 func GetWallet(c echo.Context) error {
