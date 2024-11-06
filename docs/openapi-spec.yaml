@@ -19,106 +19,25 @@ components:
     Transfer:
       type: object
       properties:
-        transfer_timestamp:
+        txid:
+          type: string
+          description: Transaction ID of the asset transfer.
+        timestamp:
           type: string
           description: Timestamp of the asset transfer.
-        anchor_tx_hash:
-          type: string
-          description: Hash of the anchor transaction.
-        anchor_tx_height_hint:
+        height:
           type: integer
-          description: Anchor transaction height hint.
-        anchor_tx_chain_fees:
-          type: string
-          description: Fees for the anchor transaction.
-        inputs:
-          type: array
-          items:
-            $ref: '#/components/schemas/TransferInput'
-          description: Inputs used in the transfer.
-        outputs:
-          type: array
-          items:
-            $ref: '#/components/schemas/TransferOutput'
-          description: Outputs from the transfer.
-
-    TransferInput:
-      type: object
-      properties:
-        anchor_point:
-          type: string
-          description: The old/current location of the Taproot Asset commitment spent as input.
+          description: Anchor transaction height.
         asset_id:
           type: string
-          description: The ID of the asset spent.
-        script_key:
+          description: Asset ID of the transfer.
+        type:
           type: string
-          description: The script key of the asset spent.
+          description: Type of the transfer (send/receive).
         amount:
-          type: string
-          description: The amount of the asset spent.
-
-    TransferOutput:
-      type: object
-      properties:
-        anchor:
-          $ref: '#/components/schemas/Anchor'
-          description: The anchor details of the transfer output.
-        script_key:
-          type: string
-          description: Script key of the output.
-        script_key_is_local:
-          type: boolean
-          description: Indicates if the script key is local.
-        amount:
-          type: string
-          description: The amount in the output.
-        new_proof_blob:
-          type: string
-          description: Proof blob for the new asset.
-        split_commit_root_hash:
-          type: string
-          description: Hash of the split commit root.
-        output_type:
-          type: string
-          description: The type of the output.
-        asset_version:
-          type: string
-          description: Version of the asset.
-        lock_time:
-          type: string
-          description: Lock time for the output.
-        relative_lock_time:
-          type: string
-          description: Relative lock time for the output.
-        proof_delivery_status:
-          type: string
-          description: Status of the proof delivery (optional).
-
-    Anchor:
-      type: object
-      properties:
-        outpoint:
-          type: string
-          description: The outpoint of the anchor.
-        value:
-          type: string
-          description: Value associated with the anchor.
-        internal_key:
-          type: string
-          description: Internal key for the anchor.
-        taproot_asset_root:
-          type: string
-          description: Taproot asset root hash.
-        merkle_root:
-          type: string
-          description: Merkle root associated with the anchor.
-        tapscript_sibling:
-          type: string
-          description: Tapscript sibling (optional).
-        num_passive_assets:
           type: integer
-          description: Number of passive assets.
+          format: uint64
+          description: Amount of the asset transferred.
 
 paths:
   /wallet/connect:
