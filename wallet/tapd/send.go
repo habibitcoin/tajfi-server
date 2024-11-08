@@ -26,7 +26,7 @@ type DecodeAddrResponse struct {
 }
 
 // DecodeAddr decodes a Taproot Asset address into the full asset response.
-func DecodeAddr(tapdHost, macaroon, address string) (*DecodeAddrResponse, error) {
+func (c *tapdClient) DecodeAddr(tapdHost, macaroon, address string) (*DecodeAddrResponse, error) {
 	url := fmt.Sprintf("https://%s/v1/taproot-assets/addrs/decode", tapdHost)
 
 	// Prepare the request payload.
@@ -36,9 +36,6 @@ func DecodeAddr(tapdHost, macaroon, address string) (*DecodeAddrResponse, error)
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	// Disable TLS verification (for testing).
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
 	// Create the HTTP request.
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
 	if err != nil {
@@ -47,9 +44,7 @@ func DecodeAddr(tapdHost, macaroon, address string) (*DecodeAddrResponse, error)
 	req.Header.Set("Grpc-Metadata-macaroon", macaroon)
 	req.Header.Set("Content-Type", "application/json")
 
-	// Execute the HTTP request.
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
@@ -99,7 +94,7 @@ type PrevId struct {
 }
 
 // FundVirtualPSBT sends a request to Tapd to fund a virtual PSBT using the invoice.
-func FundVirtualPSBT(tapdHost, macaroon, invoice string, inputs PrevIds) (fundedPsbt *FundVirtualPSBTResponse, err error) {
+func (c *tapdClient) FundVirtualPSBT(tapdHost, macaroon, invoice string, inputs PrevIds) (fundedPsbt *FundVirtualPSBTResponse, err error) {
 	url := fmt.Sprintf("https://%s/v1/taproot-assets/wallet/virtual-psbt/fund", tapdHost)
 
 	// Disable TLS verification (for testing).
@@ -159,20 +154,14 @@ type SignVirtualPSBTResponse struct {
 }
 
 // SignVirtualPSBT sends a request to Tapd to sign a virtual PSBT
-func SignVirtualPSBT(tapdHost, macaroon, psbt string) (fundedPsbt *SignVirtualPSBTResponse, err error) {
+func (c *tapdClient) SignVirtualPSBT(tapdHost, macaroon, psbt string) (fundedPsbt *SignVirtualPSBTResponse, err error) {
 	url := fmt.Sprintf("https://%s/v1/taproot-assets/wallet/virtual-psbt/sign", tapdHost)
-
-	// Disable TLS verification (for testing).
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 	// Prepare the payload
 	requestBody := map[string]interface{}{
 		"funded_psbt": psbt,
 	}
 	payloadBytes, _ := json.Marshal(requestBody)
-
-	// Disable TLS verification (for testing purposes)
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 	// Create the HTTP request
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
@@ -183,15 +172,14 @@ func SignVirtualPSBT(tapdHost, macaroon, psbt string) (fundedPsbt *SignVirtualPS
 	req.Header.Set("Content-Type", "application/json")
 
 	// Execute the HTTP request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Tapd RPC error: %s", resp.Status)
+		return nil, fmt.Errorf("tapd RPC error: %s", resp.Status)
 	}
 
 	// Parse the response
@@ -210,7 +198,7 @@ type AnchorVirtualPSBTParams struct {
 	Macaroon     string
 }
 
-func AnchorVirtualPSBT(params AnchorVirtualPSBTParams) (*AssetTransferResponse, error) {
+func (c *tapdClient) AnchorVirtualPSBT(params AnchorVirtualPSBTParams) (*AssetTransferResponse, error) {
 	url := fmt.Sprintf("https://%s/v1/taproot-assets/wallet/virtual-psbt/anchor", params.TapdHost)
 
 	// Prepare the request payload

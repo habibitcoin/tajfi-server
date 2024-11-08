@@ -4,7 +4,9 @@ import (
 	"context"
 	"log"
 	"tajfi-server/config"
+	"tajfi-server/interfaces"
 	"tajfi-server/wallet"
+	"tajfi-server/wallet/tapd"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -32,8 +34,12 @@ func main() {
 		return c.File("docs/index.html")
 	})
 
+	// Initialize dependencies
+	// Tapd client
+	tapdClient := tapd.NewTapdClient(interfaces.NewInsecureHttpClient())
+
 	// Register wallet routes
-	wallet.RegisterWalletRoutes(e, config.GetConfig(ctx))
+	wallet.RegisterWalletRoutes(e, config.GetConfig(ctx), tapdClient)
 
 	// Start the server
 	if err := e.Start(":18881"); err != nil {

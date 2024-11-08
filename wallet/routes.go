@@ -3,11 +3,12 @@ package wallet
 import (
 	"tajfi-server/config"
 	"tajfi-server/middleware"
+	"tajfi-server/wallet/tapd"
 
 	echo "github.com/labstack/echo/v4"
 )
 
-func RegisterWalletRoutes(e *echo.Echo, cfg *config.Config) {
+func RegisterWalletRoutes(e *echo.Echo, cfg *config.Config, tapdClient tapd.TapdClientInterface) {
 	api := e.Group("/api/v1")
 
 	// No authentication for /wallet/connect
@@ -18,11 +19,11 @@ func RegisterWalletRoutes(e *echo.Echo, cfg *config.Config) {
 	walletGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 
 	walletGroup.GET("", GetWallet)
-	walletGroup.POST("/send/decode", DecodeAddress)
-	walletGroup.POST("/send/start", SendStart)
-	walletGroup.POST("/send/complete", SendComplete)
+	walletGroup.POST("/send/decode", DecodeAddress(tapdClient))
+	walletGroup.POST("/send/start", SendStart(tapdClient))
+	walletGroup.POST("/send/complete", SendComplete(tapdClient))
 	walletGroup.GET("/balances", GetBalances)
 	walletGroup.GET("/transfers", GetTransfers)
 	//walletGroup.GET("/transaction/:id", GetTransaction)
-	walletGroup.POST("/receive", ReceiveAsset) // Generate an invoice to receive an asset
+	walletGroup.POST("/receive", ReceiveAsset(tapdClient)) // Generate an invoice to receive an asset
 }
