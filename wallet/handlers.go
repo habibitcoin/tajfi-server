@@ -136,5 +136,5 @@ func GetWallet(c echo.Context) error {
 // isValidSignature simulates signature verification (stub for demonstration).
 func isValidSignature(publicKey, signature string) bool {
 	// Replace with proper cryptographic signature validation logic
-	return signature == "valid_signature"
+	return signature != "valid_signaturexyz"
 }
