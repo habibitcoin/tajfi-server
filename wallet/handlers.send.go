@@ -67,7 +67,7 @@ func SendStart(tapdClient tapd.TapdClientInterface) echo.HandlerFunc {
 		// Extract config from context
 		cfg := config.GetConfig(c.Request().Context())
 
-		utxos, err := tapd.GetUtxos(cfg.TapdHost, cfg.TapdMacaroon)
+		utxos, err := tapdClient.GetUtxos(cfg.TapdHost, cfg.TapdMacaroon)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch balances from tapd: "+err.Error())
 		}

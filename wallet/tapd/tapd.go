@@ -1,7 +1,6 @@
 package tapd
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -70,10 +69,8 @@ type WalletBalancesResponse struct {
 }
 
 // GetBalances interacts with the tapd daemon to retrieve wallet balances.
-func GetBalances(tapdHost, macaroon string) (*WalletBalancesResponse, error) {
+func (c *tapdClient) GetBalances(tapdHost, macaroon string) (*WalletBalancesResponse, error) {
 	url := fmt.Sprintf("https://%s/v1/taproot-assets/assets/balance?asset_id=true&include_leased=true", tapdHost)
-	// Disable TLS verification (for testing).
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	// Create the HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -83,8 +80,7 @@ func GetBalances(tapdHost, macaroon string) (*WalletBalancesResponse, error) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Execute the HTTP request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -120,10 +116,8 @@ type GetUtxosResponse struct {
 }
 
 // GetBalances interacts with the tapd daemon to retrieve wallet UTXOs.
-func GetUtxos(tapdHost, macaroon string) (*GetUtxosResponse, error) {
+func (c *tapdClient) GetUtxos(tapdHost, macaroon string) (*GetUtxosResponse, error) {
 	url := fmt.Sprintf("https://%s/v1/taproot-assets/assets/utxos", tapdHost)
-	// Disable TLS verification (for testing).
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	// Create the HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -133,8 +127,7 @@ func GetUtxos(tapdHost, macaroon string) (*GetUtxosResponse, error) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Execute the HTTP request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -157,10 +150,8 @@ type AssetTransfersResponse struct {
 	Transfers []AssetTransferResponse `json:"transfers"`
 }
 
-func GetTransfers(tapdHost, macaroon string) (transfers AssetTransfersResponse, err error) {
+func (c *tapdClient) GetTransfers(tapdHost, macaroon string) (transfers AssetTransfersResponse, err error) {
 	url := fmt.Sprintf("https://%s/v1/taproot-assets/assets/transfers", tapdHost)
-	// Disable TLS verification (for testing).
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	// Create the HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -170,8 +161,7 @@ func GetTransfers(tapdHost, macaroon string) (transfers AssetTransfersResponse, 
 	req.Header.Set("Content-Type", "application/json")
 
 	// Execute the HTTP request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return transfers, nil
 	}

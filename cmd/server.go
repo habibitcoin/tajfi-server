@@ -36,7 +36,7 @@ func main() {
 
 	// Initialize dependencies
 	// Tapd client
-	tapdClient := tapd.NewTapdClient(interfaces.NewInsecureHttpClient())
+	tapdClient := tapd.NewTapdClient(interfaces.NewInsecureHttpClient()) // TODO: enable TLS?
 
 	// Register wallet routes
 	wallet.RegisterWalletRoutes(e, config.GetConfig(ctx), tapdClient)

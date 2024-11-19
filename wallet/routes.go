@@ -22,8 +22,8 @@ func RegisterWalletRoutes(e *echo.Echo, cfg *config.Config, tapdClient tapd.Tapd
 	walletGroup.POST("/send/decode", DecodeAddress(tapdClient))
 	walletGroup.POST("/send/start", SendStart(tapdClient))
 	walletGroup.POST("/send/complete", SendComplete(tapdClient))
-	walletGroup.GET("/balances", GetBalances)
-	walletGroup.GET("/transfers", GetTransfers)
+	walletGroup.GET("/balances", GetBalances(tapdClient))
+	walletGroup.GET("/transfers", GetTransfers(tapdClient))
 	//walletGroup.GET("/transaction/:id", GetTransaction)
 	walletGroup.POST("/receive", ReceiveAsset(tapdClient)) // Generate an invoice to receive an asset
 }

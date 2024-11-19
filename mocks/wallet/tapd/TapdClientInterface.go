@@ -260,6 +260,181 @@ func (_c *TapdClientInterface_FundVirtualPSBT_Call) RunAndReturn(run func(string
 	return _c
 }
 
+// GetBalances provides a mock function with given fields: tapdHost, macaroon
+func (_m *TapdClientInterface) GetBalances(tapdHost string, macaroon string) (*tapd.WalletBalancesResponse, error) {
+	ret := _m.Called(tapdHost, macaroon)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBalances")
+	}
+
+	var r0 *tapd.WalletBalancesResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*tapd.WalletBalancesResponse, error)); ok {
+		return rf(tapdHost, macaroon)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *tapd.WalletBalancesResponse); ok {
+		r0 = rf(tapdHost, macaroon)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*tapd.WalletBalancesResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(tapdHost, macaroon)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TapdClientInterface_GetBalances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBalances'
+type TapdClientInterface_GetBalances_Call struct {
+	*mock.Call
+}
+
+// GetBalances is a helper method to define mock.On call
+//   - tapdHost string
+//   - macaroon string
+func (_e *TapdClientInterface_Expecter) GetBalances(tapdHost interface{}, macaroon interface{}) *TapdClientInterface_GetBalances_Call {
+	return &TapdClientInterface_GetBalances_Call{Call: _e.mock.On("GetBalances", tapdHost, macaroon)}
+}
+
+func (_c *TapdClientInterface_GetBalances_Call) Run(run func(tapdHost string, macaroon string)) *TapdClientInterface_GetBalances_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *TapdClientInterface_GetBalances_Call) Return(_a0 *tapd.WalletBalancesResponse, _a1 error) *TapdClientInterface_GetBalances_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TapdClientInterface_GetBalances_Call) RunAndReturn(run func(string, string) (*tapd.WalletBalancesResponse, error)) *TapdClientInterface_GetBalances_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetTransfers provides a mock function with given fields: tapdHost, macaroon
+func (_m *TapdClientInterface) GetTransfers(tapdHost string, macaroon string) (tapd.AssetTransfersResponse, error) {
+	ret := _m.Called(tapdHost, macaroon)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTransfers")
+	}
+
+	var r0 tapd.AssetTransfersResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (tapd.AssetTransfersResponse, error)); ok {
+		return rf(tapdHost, macaroon)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) tapd.AssetTransfersResponse); ok {
+		r0 = rf(tapdHost, macaroon)
+	} else {
+		r0 = ret.Get(0).(tapd.AssetTransfersResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(tapdHost, macaroon)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TapdClientInterface_GetTransfers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTransfers'
+type TapdClientInterface_GetTransfers_Call struct {
+	*mock.Call
+}
+
+// GetTransfers is a helper method to define mock.On call
+//   - tapdHost string
+//   - macaroon string
+func (_e *TapdClientInterface_Expecter) GetTransfers(tapdHost interface{}, macaroon interface{}) *TapdClientInterface_GetTransfers_Call {
+	return &TapdClientInterface_GetTransfers_Call{Call: _e.mock.On("GetTransfers", tapdHost, macaroon)}
+}
+
+func (_c *TapdClientInterface_GetTransfers_Call) Run(run func(tapdHost string, macaroon string)) *TapdClientInterface_GetTransfers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *TapdClientInterface_GetTransfers_Call) Return(transfers tapd.AssetTransfersResponse, err error) *TapdClientInterface_GetTransfers_Call {
+	_c.Call.Return(transfers, err)
+	return _c
+}
+
+func (_c *TapdClientInterface_GetTransfers_Call) RunAndReturn(run func(string, string) (tapd.AssetTransfersResponse, error)) *TapdClientInterface_GetTransfers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetUtxos provides a mock function with given fields: tapdHost, macaroon
+func (_m *TapdClientInterface) GetUtxos(tapdHost string, macaroon string) (*tapd.GetUtxosResponse, error) {
+	ret := _m.Called(tapdHost, macaroon)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUtxos")
+	}
+
+	var r0 *tapd.GetUtxosResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*tapd.GetUtxosResponse, error)); ok {
+		return rf(tapdHost, macaroon)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *tapd.GetUtxosResponse); ok {
+		r0 = rf(tapdHost, macaroon)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*tapd.GetUtxosResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(tapdHost, macaroon)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TapdClientInterface_GetUtxos_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUtxos'
+type TapdClientInterface_GetUtxos_Call struct {
+	*mock.Call
+}
+
+// GetUtxos is a helper method to define mock.On call
+//   - tapdHost string
+//   - macaroon string
+func (_e *TapdClientInterface_Expecter) GetUtxos(tapdHost interface{}, macaroon interface{}) *TapdClientInterface_GetUtxos_Call {
+	return &TapdClientInterface_GetUtxos_Call{Call: _e.mock.On("GetUtxos", tapdHost, macaroon)}
+}
+
+func (_c *TapdClientInterface_GetUtxos_Call) Run(run func(tapdHost string, macaroon string)) *TapdClientInterface_GetUtxos_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *TapdClientInterface_GetUtxos_Call) Return(_a0 *tapd.GetUtxosResponse, _a1 error) *TapdClientInterface_GetUtxos_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TapdClientInterface_GetUtxos_Call) RunAndReturn(run func(string, string) (*tapd.GetUtxosResponse, error)) *TapdClientInterface_GetUtxos_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SendAssets provides a mock function with given fields: tapdHost, macaroon, invoice
 func (_m *TapdClientInterface) SendAssets(tapdHost string, macaroon string, invoice string) (*tapd.FundVirtualPSBTResponse, error) {
 	ret := _m.Called(tapdHost, macaroon, invoice)

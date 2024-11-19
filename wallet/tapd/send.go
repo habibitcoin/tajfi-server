@@ -2,7 +2,6 @@ package tapd
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -97,9 +96,6 @@ type PrevId struct {
 func (c *tapdClient) FundVirtualPSBT(tapdHost, macaroon, invoice string, inputs PrevIds) (fundedPsbt *FundVirtualPSBTResponse, err error) {
 	url := fmt.Sprintf("https://%s/v1/taproot-assets/wallet/virtual-psbt/fund", tapdHost)
 
-	// Disable TLS verification (for testing).
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
 	// Prepare the payload
 	requestBody := map[string]interface{}{
 		"raw": map[string]interface{}{
@@ -115,9 +111,6 @@ func (c *tapdClient) FundVirtualPSBT(tapdHost, macaroon, invoice string, inputs 
 		log.Printf("Failed to marshal request body: %v", err)
 	}
 
-	// Disable TLS verification (for testing purposes)
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
 	// Create the HTTP request
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
 	if err != nil {
@@ -126,16 +119,14 @@ func (c *tapdClient) FundVirtualPSBT(tapdHost, macaroon, invoice string, inputs 
 	req.Header.Set("Grpc-Metadata-macaroon", macaroon)
 	req.Header.Set("Content-Type", "application/json")
 
-	// Execute the HTTP request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Tapd RPC error: %s", resp.Status)
+		return nil, fmt.Errorf("tapd RPC error: %s", resp.Status)
 	}
 
 	log.Printf("Response status: %s", resp.Status)
@@ -207,9 +198,6 @@ func (c *tapdClient) AnchorVirtualPSBT(params AnchorVirtualPSBTParams) (*AssetTr
 	}
 	payloadBytes, _ := json.Marshal(payload)
 
-	// Disable TLS verification (for testing)
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
 	// Create the HTTP request
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
 	if err != nil {
@@ -218,9 +206,7 @@ func (c *tapdClient) AnchorVirtualPSBT(params AnchorVirtualPSBTParams) (*AssetTr
 	req.Header.Set("Grpc-Metadata-macaroon", params.Macaroon)
 	req.Header.Set("Content-Type", "application/json")
 
-	// Execute the HTTP request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

@@ -54,23 +54,25 @@ func ConnectWallet(c echo.Context) error {
 	})
 }
 
-func GetBalances(c echo.Context) error {
-	var (
-		ctx    = c.Request().Context()
-		cfg    = config.GetConfig(ctx)
-		pubKey = ctx.Value("public_key").(string)
-	)
+func GetBalances(tapdClient tapd.TapdClientInterface) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var (
+			ctx    = c.Request().Context()
+			cfg    = config.GetConfig(ctx)
+			pubKey = ctx.Value("public_key").(string)
+		)
 
-	utxos, err := tapd.GetUtxos(cfg.TapdHost, cfg.TapdMacaroon)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch balances from tapd: "+err.Error())
-	}
+		utxos, err := tapdClient.GetUtxos(cfg.TapdHost, cfg.TapdMacaroon)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch balances from tapd: "+err.Error())
+		}
 
-	balances, err := constructWalletBalancesResponse(utxos, pubKey)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to construct wallet balances: "+err.Error())
+		balances, err := constructWalletBalancesResponse(utxos, pubKey)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to construct wallet balances: "+err.Error())
+		}
+		return c.JSON(http.StatusOK, balances)
 	}
-	return c.JSON(http.StatusOK, balances)
 }
 
 // ConstructWalletBalancesResponse constructs a WalletBalancesResponse by finding
@@ -113,19 +115,21 @@ func constructWalletBalancesResponse(utxos *tapd.GetUtxosResponse, scriptKey str
 	return &tapd.WalletBalancesResponse{AssetBalances: assetBalances}, nil
 }
 
-func GetTransfers(c echo.Context) error {
-	var (
-		ctx    = c.Request().Context()
-		cfg    = config.GetConfig(ctx)
-		pubKey = ctx.Value("public_key").(string)
-	)
+func GetTransfers(tapdClient tapd.TapdClientInterface) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var (
+			ctx    = c.Request().Context()
+			cfg    = config.GetConfig(ctx)
+			pubKey = ctx.Value("public_key").(string)
+		)
 
-	tapdTransfers, err := tapd.GetTransfers(cfg.TapdHost, cfg.TapdMacaroon)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch balances from tapd: "+err.Error())
+		tapdTransfers, err := tapdClient.GetTransfers(cfg.TapdHost, cfg.TapdMacaroon)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch balances from tapd: "+err.Error())
+		}
+
+		return c.JSON(http.StatusOK, GetTransfersResponse(tapdTransfers, pubKey))
 	}
-
-	return c.JSON(http.StatusOK, GetTransfersResponse(tapdTransfers, pubKey))
 }
 
 func GetWallet(c echo.Context) error {
