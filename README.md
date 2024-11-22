@@ -39,6 +39,19 @@ To set up and run this project, you need the following:
 3.  Configure Environment: Ensure that the  TaprootSigsDir environment variable is set to the directory where the  tapd binary is located.
 4. Begin the backend server by running `go run cmd/server.go`. Ensure the `tapd` daemon is also already running.
 
+## Development
+
+1. Refresh mock files
+
+```
+mockery
+```
+
+
+## Stack
+
+1. [Mockery](https://vektra.github.io/mockery/latest/) is a project that creates mock implementations of Golang interfaces.
+
 ## License
 
 This project is licensed under the MIT License with a Non-Commercial clause. You are free to use and modify this software for personal and non-commercial purposes. Commercial use is prohibited without explicit permission from the author.

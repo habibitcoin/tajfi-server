@@ -8,7 +8,7 @@ import (
 )
 
 // Receive initializes the generate invoice process.
-func Receive(params ReceiveParams) (map[string]interface{}, error) {
+func Receive(params ReceiveParams, tapdClient tapd.TapdClientInterface) (map[string]interface{}, error) {
 	// Step 1: Call LND to get the internal key
 	log.Println("Getting internal key with params", params)
 	internalKey, err := lnd.GetInternalKey(params.LNDHost, params.LNMacaroon)
@@ -41,7 +41,7 @@ func Receive(params ReceiveParams) (map[string]interface{}, error) {
 	log.Println("Prepared Tapd payload", payload)
 
 	// Step 3: Call the Tapd API to create the address
-	response, err := tapd.CallNewAddress(params.TapdHost, params.TapdMacaroon, payload)
+	response, err := tapdClient.CallNewAddress(params.TapdHost, params.TapdMacaroon, payload)
 	if err != nil {
 		log.Println("Failed to call Tapd API", err)
 		return nil, fmt.Errorf("failed to call Tapd API: %w", err)

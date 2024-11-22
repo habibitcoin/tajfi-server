@@ -2,7 +2,6 @@ package tapd
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,11 +16,8 @@ type NewAddressPayload struct {
 }
 
 // CallNewAddress sends the payload to the Tapd NewAddress RPC.
-func CallNewAddress(tapdHost, macaroon string, payload NewAddressPayload) (map[string]interface{}, error) {
+func (c *tapdClient) CallNewAddress(tapdHost, macaroon string, payload NewAddressPayload) (map[string]interface{}, error) {
 	url := fmt.Sprintf("https://%s/v1/taproot-assets/addrs", tapdHost)
-
-	// Disable TLS verification (use with caution)
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 	payloadBytes, _ := json.Marshal(payload)
 
@@ -33,15 +29,14 @@ func CallNewAddress(tapdHost, macaroon string, payload NewAddressPayload) (map[s
 	req.Header.Set("Grpc-Metadata-macaroon", macaroon)
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Tapd RPC error: %s", resp.Status)
+		return nil, fmt.Errorf("tapd RPC error: %s", resp.Status)
 	}
 
 	var result map[string]interface{}
