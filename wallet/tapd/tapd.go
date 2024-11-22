@@ -39,13 +39,19 @@ type TransferOutput struct {
 	ProofDeliveryStatus string `json:"proof_delivery_status,omitempty"`
 }
 
+type AnchorTxBlockHash struct {
+	Hash    string `json:"hash"`
+	HashStr string `json:"hash_str"`
+}
+
 type AssetTransferResponse struct {
-	TransferTimestamp  string           `json:"transfer_timestamp"`
-	AnchorTxHash       string           `json:"anchor_tx_hash"`
-	AnchorTxHeightHint int              `json:"anchor_tx_height_hint"`
-	AnchorTxChainFees  string           `json:"anchor_tx_chain_fees"`
-	Inputs             []TransferInput  `json:"inputs"`
-	Outputs            []TransferOutput `json:"outputs"`
+	TransferTimestamp  string            `json:"transfer_timestamp"`
+	AnchorTxHash       string            `json:"anchor_tx_hash"`
+	AnchorTxHeightHint int               `json:"anchor_tx_height_hint"`
+	AnchorTxChainFees  string            `json:"anchor_tx_chain_fees"`
+	AnchorTxBlockHash  AnchorTxBlockHash `json:"anchor_tx_block_hash"`
+	Inputs             []TransferInput   `json:"inputs"`
+	Outputs            []TransferOutput  `json:"outputs"`
 }
 
 type AssetGenesis struct {
@@ -59,8 +65,9 @@ type AssetGenesis struct {
 
 // AssetBalance represents an individual asset's balance.
 type AssetBalance struct {
-	AssetGenesis AssetGenesis `json:"asset_genesis"`
-	Balance      string       `json:"balance"`
+	AssetGenesis       AssetGenesis `json:"asset_genesis"`
+	Balance            string       `json:"balance"`
+	UnconfirmedBalance string       `json:"unconfirmed_balance,omitempty"`
 }
 
 // WalletBalancesResponse represents the response structure for wallet balances.
