@@ -118,7 +118,10 @@ paths:
                               description: The index of the output in the genesis transaction.
                         balance:
                           type: string
-                          description: The current balance of the asset in the wallet.
+                          description: The current total balance of the asset in the wallet, including unconfirmed amounts.
+                        unconfirmed_balance:
+                          type: string
+                          description: The current balance of the asset in the wallet that is unavailable for spending until confirmation.
         '401':
           description: Unauthorized
         '500':

@@ -71,6 +71,17 @@ func GetBalances(tapdClient tapd.TapdClientInterface) echo.HandlerFunc {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to construct wallet balances: "+err.Error())
 		}
+
+		// Step 3: Fetch transfers and process unconfirmed ones
+		tapdTransfers, err := tapdClient.GetTransfers(cfg.TapdHost, cfg.TapdMacaroon)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch transfers from tapd: "+err.Error())
+		}
+		transfers := GetTransfersResponse(tapdTransfers, pubKey)
+
+		// Step 4: Update balances with unconfirmed transfers
+		UpdateBalancesWithUnconfirmed(balances, transfers)
+
 		return c.JSON(http.StatusOK, balances)
 	}
 }
