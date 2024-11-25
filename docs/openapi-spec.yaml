@@ -318,3 +318,194 @@ paths:
                     description: Invoice to receive assets
         '401':
           description: Unauthorized
+
+  /wallet/sell/start:
+    post:
+      summary: Initiate the sell process
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                asset_id:
+                  type: string
+                  description: The ID of the asset to sell.
+                amount_to_sell:
+                  type: integer
+                  format: int64
+                  description: Amount of the asset to sell.
+              required:
+                - asset_id
+                - amount_to_sell
+      responses:
+        '200':
+          description: Sell process initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  funded_psbt:
+                    type: string
+                    description: The funded PSBT hex.
+                  change_output_index:
+                    type: integer
+                    description: Index of the change output in the PSBT.
+                  passive_asset_psbts:
+                    type: array
+                    items:
+                      type: string
+                    description: Passive asset PSBTs.
+                  sighash_hex_to_sign:
+                    type: string
+                    description: The sighash hex to provide a Schnorr signature over.
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+
+  /wallet/sell/complete:
+    post:
+      summary: Finalize the sell process
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                psbt:
+                  type: string
+                  description: The unsigned PSBT for the sell process.
+                sighash_hex:
+                  type: string
+                  description: The sighash hex generated during the start process.
+                signature_hex:
+                  type: string
+                  description: The Schnorr signature hex over the sighash.
+                amount_sats_to_receive:
+                  type: integer
+                  format: int64
+                  description: Amount in satoshis to receive for the asset.
+              required:
+                - psbt
+                - sighash_hex
+                - signature_hex
+                - amount_sats_to_receive
+      responses:
+        '200':
+          description: Sell process completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  signed_virtual_psbt:
+                    type: string
+                    description: Signed virtual PSBT.
+                  modified_anchor_psbt:
+                    type: string
+                    description: Modified anchor PSBT.
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+
+  /wallet/buy/start:
+    post:
+      summary: Initiate the buy process
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                psbt:
+                  type: string
+                  description: The PSBT for the buy process.
+                anchor_psbt:
+                  type: string
+                  description: The anchor PSBT for the buy process.
+              required:
+                - psbt
+                - anchor_psbt
+      responses:
+        '200':
+          description: Updated and funded PSBT returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated_virtual_psbt:
+                    type: string
+                    description: The funded PSBT hex.
+                  updated_anchor_psbt:
+                    type: integer
+                    description: The updated anchor PSBT that still requires BTC funding.
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+
+  /wallet/buy/complete:
+    post:
+      summary: Finalize the buy process
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                psbt:
+                  type: string
+                  description: The PSBT for the buy process.
+                anchor_psbt:
+                  type: string
+                  description: The anchor PSBT for the transaction.
+                sighash_hex:
+                  type: string
+                  description: The sighash hex generated during the start process.
+                signature_hex:
+                  type: string
+                  description: The Schnorr signature hex over the sighash.
+                amount_sats_to_pay:
+                  type: integer
+                  format: int64
+                  description: Amount in satoshis to pay for the asset.
+              required:
+                - psbt
+                - anchor_psbt
+                - sighash_hex
+                - signature_hex
+                - amount_sats_to_pay
+      responses:
+        '200':
+          description: Buy process completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  signed_virtual_psbt:
+                    type: string
+                    description: Signed virtual PSBT.
+                  modified_anchor_psbt:
+                    type: string
+                    description: Modified anchor PSBT.
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
