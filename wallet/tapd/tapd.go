@@ -29,8 +29,10 @@ type Asset struct {
 }
 
 type ManagedUtxo struct {
-	Outpoint string  `json:"out_point"`
-	Assets   []Asset `json:"assets"`
+	Outpoint    string  `json:"out_point"`
+	InternalKey string  `json:"internal_key"`
+	AmtSat      string  `json:"amt_sat"`
+	Assets      []Asset `json:"assets"`
 }
 
 type GetUtxosResponse struct {

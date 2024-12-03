@@ -3,10 +3,11 @@ package tapd
 import "fmt"
 
 type PrevId struct {
-	Outpoint  Outpoint `json:"outpoint"`
-	AssetId   string   `json:"id"`
-	ScriptKey string   `json:"script_key"`
-	Amount    int      `json:"-"`
+	Outpoint    Outpoint `json:"outpoint"`
+	AssetId     string   `json:"id"`
+	ScriptKey   string   `json:"script_key"`
+	Amount      int64    `json:"-"`
+	InternalKey string   `json:"-"`
 }
 
 type Outpoint struct {

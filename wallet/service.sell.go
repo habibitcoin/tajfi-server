@@ -2,6 +2,7 @@ package wallet
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"log"
@@ -34,12 +35,29 @@ type SellCompleteParams struct {
 
 // StartSellService handles the creation of a virtual PSBT for selling assets.
 func StartSellService(params SellStartParams, tapdClient tapd.TapdClientInterface) (*SellStartResponse, error) {
+	cfg := tapdClient.GetClientConfig()
+
+	// First, we need to check if the user has a UTXO that can be used to fund the sell.
+	// NOTE: Only 1 UTXO is supported currently.
+	utxos, err := tapdClient.GetUtxos(cfg.TapdHost, cfg.TapdMacaroon)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get utxos: %w", err)
+	}
+	eligibleUtxos := FilterOwnedUtxos(utxos, params.PubKey, params.AssetID)
+
+	if len(eligibleUtxos.Inputs) == 0 {
+		return nil, fmt.Errorf("no eligible UTXOs found to sell for assetID %s", params.AssetID)
+	}
+	if eligibleUtxos.Inputs[0].Amount < params.AmountToSell {
+		return nil, fmt.Errorf("insufficient funds to sell assetID %s, largest UTXO is %d", params.AssetID, eligibleUtxos.Inputs[0].Amount)
+	}
+
 	// Step 1: Call CreateInteractiveSendTemplate
 	templateReq := tapd.CreateInteractiveSendTemplateRequest{
 		AssetID:           params.AssetID,
 		Amount:            uint64(params.AmountToSell),
 		ScriptKey:         "02" + params.PubKey,
-		AnchorInternalKey: "038ad7a55097313d9bb1c73ef2e8a22bace4134a92e118d7cccbd6638d301b942f",
+		AnchorInternalKey: eligibleUtxos.Inputs[0].InternalKey,
 	}
 	templateResp, err := tapdClient.CreateInteractiveSendTemplate(params.TapdHost, params.TapdMacaroon, templateReq)
 	if err != nil {
@@ -133,7 +151,12 @@ func CompleteSellService(params SellCompleteParams, tapdClient tapd.TapdClientIn
 	log.Printf("Modified PSBT: %s\n", modifiedPSBT)
 
 	// Step 5: Sign the modified PSBT with LND.
-	signReq := lnd.SignPsbtRequest{FundedPsbt: modifiedPSBT}
+	// Convert the hex string to a byte slice
+	modifiedPSBTBytes, err := hex.DecodeString(modifiedPSBT)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode modified PSBT from hex: %w", err)
+	}
+	signReq := lnd.SignPsbtRequest{FundedPsbt: base64.StdEncoding.EncodeToString(modifiedPSBTBytes)}
 	lndSignResp, err := lnd.SignPsbt(cfg.LNDHost, cfg.LNDMacaroon, signReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign PSBT with LND: %w", err)

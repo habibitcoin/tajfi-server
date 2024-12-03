@@ -94,16 +94,17 @@ func FilterOwnedUtxos(utxos *tapd.GetUtxosResponse, pubKey string, assetId strin
 					fmt.Println("Error parsing outpoint:", err)
 					continue
 				}
-				amount, err := strconv.Atoi(asset.Amount)
+				amount, err := strconv.ParseInt(asset.Amount, 10, 64)
 				if err != nil {
 					fmt.Println("Error converting amount:", err)
 					continue
 				}
 				ownedUtxos.Inputs = append(ownedUtxos.Inputs, tapd.PrevId{
-					Outpoint:  tapd.Outpoint{Txid: txid, OutputIndex: vout},
-					AssetId:   asset.AssetGenesis.AssetID,
-					ScriptKey: asset.ScriptKey,
-					Amount:    amount,
+					Outpoint:    tapd.Outpoint{Txid: txid, OutputIndex: vout},
+					AssetId:     asset.AssetGenesis.AssetID,
+					ScriptKey:   asset.ScriptKey,
+					Amount:      amount,
+					InternalKey: utxo.InternalKey,
 				})
 				break
 			}
