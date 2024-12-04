@@ -86,6 +86,15 @@ func CompleteBuyService(params BuyCompleteParams, tapdClient tapd.TapdClientInte
 	}
 	signedPsbtHex := hex.EncodeToString(signedPsbtBytes)
 
+	// Log and publish
+	_, err = tapdClient.LogAndTransferPsbt(params.TapdHost, params.TapdMacaroon, tapd.CommitVirtualPsbtsRequest{
+		VirtualPSBTs: []string{commitResp.VirtualPSBTs[0]},
+		AnchorPSBT:   signedPsbtHex,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to log and transfer PSBT: %w", err)
+	}
+
 	return &SellCompleteResponse{
 		SignedVirtualPSBT:  commitResp.VirtualPSBTs[0],
 		ModifiedAnchorPSBT: signedPsbtHex,

@@ -17,6 +17,7 @@ type TapdClientInterface interface {
 	FundVirtualPSBT(tapdHost, macaroon, invoice string, inputs PrevIds, useTemplate bool) (*FundVirtualPSBTResponse, error)
 	SignVirtualPSBT(tapdHost, macaroon, psbt string) (*SignVirtualPSBTResponse, error)
 	AnchorVirtualPSBT(params AnchorVirtualPSBTParams) (*AssetTransferResponse, error)
+	LogAndTransferPsbt(tapdHost, macaroon string, req CommitVirtualPsbtsRequest) (*AssetTransferResponse, error)
 	GetBalances(tapdHost, macaroon string) (*WalletBalancesResponse, error)
 	GetTransfers(tapdHost, macaroon string) (AssetTransfersResponse, error)
 	GetUtxos(tapdHost, macaroon string) (*GetUtxosResponse, error)

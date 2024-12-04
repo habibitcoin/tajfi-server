@@ -107,3 +107,12 @@ func (c *tapdClient) CommitVirtualPsbts(tapdHost, macaroon string, req CommitVir
 	err := c.makePostRequest(url, macaroon, req, &response)
 	return &response, err
 }
+
+// CommitVirtualPsbts commits virtual PSBTs to the anchor PSBT.
+func (c *tapdClient) LogAndTransferPsbt(tapdHost, macaroon string, req CommitVirtualPsbtsRequest) (*AssetTransferResponse, error) {
+	url := fmt.Sprintf("https://%s/v1/taproot-assets/wallet/virtual-psbt/log-transfer", tapdHost)
+
+	var assetTransfer AssetTransferResponse
+	err := c.makePostRequest(url, macaroon, req, &assetTransfer)
+	return &assetTransfer, err
+}
