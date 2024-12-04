@@ -52,12 +52,12 @@ func (c *tapdClient) DecodeAddr(tapdHost, macaroon, address string) (*DecodeAddr
 	return &decodedAddr, err
 }
 
-func (c *tapdClient) FundVirtualPSBT(tapdHost, macaroon, psbtOrInvoice string, inputs PrevIds) (*FundVirtualPSBTResponse, error) {
+func (c *tapdClient) FundVirtualPSBT(tapdHost, macaroon, psbtOrInvoice string, inputs PrevIds, useTemplate bool) (*FundVirtualPSBTResponse, error) {
 	url := fmt.Sprintf("https://%s/v1/taproot-assets/wallet/virtual-psbt/fund", tapdHost)
 
 	var payload map[string]interface{}
 
-	if len(inputs.Inputs) > 0 {
+	if useTemplate {
 		// Use raw format with recipients and inputs if no PSBT is provided.
 		payload = map[string]interface{}{
 			"raw": map[string]interface{}{
@@ -68,7 +68,8 @@ func (c *tapdClient) FundVirtualPSBT(tapdHost, macaroon, psbtOrInvoice string, i
 	} else {
 		// Use the PSBT format if a PSBT string is provided.
 		payload = map[string]interface{}{
-			"psbt": psbtOrInvoice,
+			"psbt":   psbtOrInvoice,
+			"inputs": inputs.Inputs,
 		}
 	}
 

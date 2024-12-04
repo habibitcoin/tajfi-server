@@ -65,7 +65,7 @@ func StartSellService(params SellStartParams, tapdClient tapd.TapdClientInterfac
 	}
 
 	// Step 2: Call FundVirtualPSBT
-	fundResp, err := tapdClient.FundVirtualPSBT(params.TapdHost, params.TapdMacaroon, templateResp.VirtualPSBT, tapd.PrevIds{})
+	fundResp, err := tapdClient.FundVirtualPSBT(params.TapdHost, params.TapdMacaroon, templateResp.VirtualPSBT, tapd.PrevIds{Inputs: []tapd.PrevId{eligibleUtxos.Inputs[0]}}, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fund virtual PSBT: %w", err)
 	}

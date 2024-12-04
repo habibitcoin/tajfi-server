@@ -14,7 +14,7 @@ type TapdClientInterface interface {
 	GetClientConfig() *config.Config
 	CallNewAddress(tapdHost, macaroon string, payload NewAddressPayload) (map[string]interface{}, error)
 	DecodeAddr(tapdHost, macaroon, address string) (*DecodeAddrResponse, error)
-	FundVirtualPSBT(tapdHost, macaroon, invoice string, inputs PrevIds) (*FundVirtualPSBTResponse, error)
+	FundVirtualPSBT(tapdHost, macaroon, invoice string, inputs PrevIds, useTemplate bool) (*FundVirtualPSBTResponse, error)
 	SignVirtualPSBT(tapdHost, macaroon, psbt string) (*SignVirtualPSBTResponse, error)
 	AnchorVirtualPSBT(params AnchorVirtualPSBTParams) (*AssetTransferResponse, error)
 	GetBalances(tapdHost, macaroon string) (*WalletBalancesResponse, error)
