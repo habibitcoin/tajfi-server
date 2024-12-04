@@ -48,8 +48,19 @@ func StartSellService(params SellStartParams, tapdClient tapd.TapdClientInterfac
 	if len(eligibleUtxos.Inputs) == 0 {
 		return nil, fmt.Errorf("no eligible UTXOs found to sell for assetID %s", params.AssetID)
 	}
-	if eligibleUtxos.Inputs[0].Amount < params.AmountToSell {
-		return nil, fmt.Errorf("insufficient funds to sell assetID %s, largest UTXO is %d", params.AssetID, eligibleUtxos.Inputs[0].Amount)
+	var (
+		selectedUtxo tapd.PrevId
+		validAmounts []int64
+	)
+	for _, utxo := range eligibleUtxos.Inputs {
+		if utxo.Amount == params.AmountToSell {
+			selectedUtxo = utxo
+			break
+		}
+		validAmounts = append(validAmounts, utxo.Amount)
+	}
+	if selectedUtxo == (tapd.PrevId{}) {
+		return nil, fmt.Errorf("no UTXO found with exact amount %d for assetID %s. eligible amounts are: %v", params.AmountToSell, params.AssetID, validAmounts)
 	}
 
 	// Step 1: Call CreateInteractiveSendTemplate
@@ -65,7 +76,7 @@ func StartSellService(params SellStartParams, tapdClient tapd.TapdClientInterfac
 	}
 
 	// Step 2: Call FundVirtualPSBT
-	fundResp, err := tapdClient.FundVirtualPSBT(params.TapdHost, params.TapdMacaroon, templateResp.VirtualPSBT, tapd.PrevIds{Inputs: []tapd.PrevId{eligibleUtxos.Inputs[0]}}, false)
+	fundResp, err := tapdClient.FundVirtualPSBT(params.TapdHost, params.TapdMacaroon, templateResp.VirtualPSBT, tapd.PrevIds{Inputs: []tapd.PrevId{selectedUtxo}}, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fund virtual PSBT: %w", err)
 	}
@@ -163,13 +174,20 @@ func CompleteSellService(params SellCompleteParams, tapdClient tapd.TapdClientIn
 	}
 
 	// Return the finalized PSBTs.
+	signedPsbtBytes, err := base64.StdEncoding.DecodeString(lndSignResp.SignedPsbt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode base64 signed PSBT: %w", err)
+	}
+	signedPsbtHex := hex.EncodeToString(signedPsbtBytes)
+
 	return &SellCompleteResponse{
 		SignedVirtualPSBT:  signResp.SignedPSBT,
-		ModifiedAnchorPSBT: lndSignResp.SignedPsbt,
+		ModifiedAnchorPSBT: signedPsbtHex,
 	}, nil
 }
 
 // stripFundingInputsAndOutputs removes unnecessary funding inputs and outputs from a PSBT.
+// we only support 1-in-2-out PSBTs for now.
 func stripFundingInputsAndOutputs(psbtHex string) (string, error) {
 	// Decode the hex string into raw PSBT bytes.
 	psbtBytes, err := hex.DecodeString(psbtHex)
@@ -184,7 +202,7 @@ func stripFundingInputsAndOutputs(psbtHex string) (string, error) {
 	}
 
 	// Modify inputs: Remove the funding input at index 1 (keep input 0 and input 2).
-	if len(btcpsbt.Inputs) > 2 {
+	if len(btcpsbt.Inputs) > 1 {
 		btcpsbt.Inputs = append(btcpsbt.Inputs[:1], btcpsbt.Inputs[2:]...)
 		btcpsbt.UnsignedTx.TxIn = append(btcpsbt.UnsignedTx.TxIn[:1], btcpsbt.UnsignedTx.TxIn[2:]...)
 	}
@@ -193,6 +211,9 @@ func stripFundingInputsAndOutputs(psbtHex string) (string, error) {
 	if len(btcpsbt.Outputs) > 2 {
 		btcpsbt.Outputs = btcpsbt.Outputs[:2]
 		btcpsbt.UnsignedTx.TxOut = btcpsbt.UnsignedTx.TxOut[:2]
+	}
+	if len(btcpsbt.UnsignedTx.TxOut) >= 1 {
+		btcpsbt.UnsignedTx.TxOut[1].Value = 1000 // Set the amount to 1000 sats.
 	}
 
 	// Serialize the modified PSBT back into raw bytes.
