@@ -1,6 +1,8 @@
 package wallet
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"tajfi-server/wallet/lnd"
@@ -61,15 +63,31 @@ func CompleteBuyService(params BuyCompleteParams, tapdClient tapd.TapdClientInte
 	log.Printf("Committed PSBTs: %s", commitResp.VirtualPSBTs)
 	log.Printf("Anchor PSBT: %s", commitResp.AnchorPSBT)
 
+	base64Anchor, err := hex.DecodeString(commitResp.AnchorPSBT)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode modified PSBT from hex: %w", err)
+	}
 	// Fund and sign the committed PSBT using LND.
-	signReq := lnd.SignPsbtRequest{FundedPsbt: string(commitResp.AnchorPSBT)}
-	finalizedPSBT, err := lnd.SignPsbt(cfg.LNDHost, cfg.LNDMacaroon, signReq)
+	signReq := lnd.SignPsbtRequest{FundedPsbt: base64.StdEncoding.EncodeToString(base64Anchor)}
+	finalizedPSBT1, err := lnd.SignPsbt(cfg.LNDHost, cfg.LNDMacaroon, signReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to finalize PSBT: %w", err)
 	}
 
+	finalizedPSBT, err := lnd.FinalizePsbt(cfg.LNDHost, cfg.LNDMacaroon, lnd.SignPsbtRequest{FundedPsbt: finalizedPSBT1.SignedPsbt})
+	if err != nil {
+		return nil, fmt.Errorf("failed to finalize PSBT: %w", err)
+	}
+
+	// Return the finalized PSBTs.
+	signedPsbtBytes, err := base64.StdEncoding.DecodeString(finalizedPSBT.SignedPsbt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode base64 signed PSBT: %w", err)
+	}
+	signedPsbtHex := hex.EncodeToString(signedPsbtBytes)
+
 	return &SellCompleteResponse{
 		SignedVirtualPSBT:  commitResp.VirtualPSBTs[0],
-		ModifiedAnchorPSBT: finalizedPSBT.SignedPsbt,
+		ModifiedAnchorPSBT: signedPsbtHex,
 	}, nil
 }
