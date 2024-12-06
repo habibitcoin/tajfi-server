@@ -30,6 +30,7 @@ type SellCompleteParams struct {
 	SighashHex          string
 	SignatureHex        string
 	AmountSatsToReceive int64
+	ReceiveBTCAddress   string
 	TapdHost            string
 	TapdMacaroon        string
 }
@@ -175,7 +176,7 @@ func CompleteSellService(params SellCompleteParams, tapdClient tapd.TapdClientIn
 
 	// Step 4: Modify PSBT to strip funding inputs/outputs.
 	modifiedPSBT := commitResp.AnchorPSBT
-	modifiedPSBT, err = stripFundingInputsAndOutputs(modifiedPSBT)
+	modifiedPSBT, err = stripFundingInputsAndOutputs(modifiedPSBT, params.ReceiveBTCAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to strip funding inputs/outputs: %w", err)
 	}
@@ -248,7 +249,7 @@ func CompleteSellService(params SellCompleteParams, tapdClient tapd.TapdClientIn
 
 // stripFundingInputsAndOutputs removes unnecessary funding inputs and outputs from a PSBT.
 // we only support 1-in-2-out PSBTs for now.
-func stripFundingInputsAndOutputs(psbtHex string) (string, error) {
+func stripFundingInputsAndOutputs(psbtHex string, destinationAddress string) (string, error) {
 	// Decode the hex string into raw PSBT bytes.
 	psbtBytes, err := hex.DecodeString(psbtHex)
 	if err != nil {
@@ -273,6 +274,16 @@ func stripFundingInputsAndOutputs(psbtHex string) (string, error) {
 		btcpsbt.UnsignedTx.TxOut = btcpsbt.UnsignedTx.TxOut[:2]
 	}
 	if len(btcpsbt.UnsignedTx.TxOut) >= 1 {
+		// Generate the PkScript for the input address.
+		if destinationAddress != "" {
+			pkScript, err := GeneratePkScript(destinationAddress)
+			if err != nil {
+				return "", fmt.Errorf("failed to generate PkScript for address: %w", err)
+			}
+
+			// Update the first output's PkScript.
+			btcpsbt.UnsignedTx.TxOut[0].PkScript = pkScript
+		}
 		btcpsbt.UnsignedTx.TxOut[1].Value = 1000 // Set the amount to 1000 sats.
 	}
 

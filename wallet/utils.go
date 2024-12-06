@@ -15,7 +15,10 @@ import (
 	"tajfi-server/wallet/tapd"
 
 	btcec "github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/btcutil/psbt"
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcd/txscript"
 )
 
 // CompressPubKey converts a 32-byte X-coordinate into a 33-byte compressed public key.
@@ -196,4 +199,21 @@ func reverse(input []byte) []byte {
 		reversed[i] = input[len(input)-1-i]
 	}
 	return reversed
+}
+
+// generatePkScript generates the PkScript (locking script) for a given Bitcoin address.
+func GeneratePkScript(address string) ([]byte, error) {
+	// Decode the address into a btcutil.Address object.
+	addr, err := btcutil.DecodeAddress(address, &chaincfg.SigNetParams) // Adjust network params as needed.
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode address: %w", err)
+	}
+
+	// Generate the PkScript for the address.
+	pkScript, err := txscript.PayToAddrScript(addr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create PkScript: %w", err)
+	}
+
+	return pkScript, nil
 }

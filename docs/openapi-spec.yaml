@@ -444,11 +444,15 @@ paths:
                   type: integer
                   format: int64
                   description: Amount in satoshis to receive for the asset.
+                receive_btc_address:
+                  type: string
+                  description: The BTC address to receive the payment.
               required:
                 - psbt
                 - sighash_hex
                 - signature_hex
                 - amount_sats_to_receive
+                - receive_btc_address
       responses:
         '200':
           description: Sell process completed successfully

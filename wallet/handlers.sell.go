@@ -22,6 +22,7 @@ type SellCompleteRequest struct {
 	SighashHex          string `json:"sighash_hex" validate:"required"`
 	SignatureHex        string `json:"signature_hex" validate:"required"`
 	AmountSatsToReceive int64  `json:"amount_sats_to_receive" validate:"required"`
+	ReceiveBTCAddress   string `json:"receive_btc_address" validate:"required"`
 }
 
 type SellCompleteResponse struct {
@@ -77,6 +78,7 @@ func SellComplete(tapdClient tapd.TapdClientInterface) echo.HandlerFunc {
 			SighashHex:          req.SighashHex,
 			SignatureHex:        req.SignatureHex,
 			AmountSatsToReceive: req.AmountSatsToReceive,
+			ReceiveBTCAddress:   req.ReceiveBTCAddress,
 			TapdHost:            cfg.TapdHost,
 			TapdMacaroon:        cfg.TapdMacaroon,
 		}
