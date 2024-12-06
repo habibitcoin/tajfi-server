@@ -1,5 +1,7 @@
 package wallet
 
+import "tajfi-server/wallet/tapd"
+
 type Transfer struct {
 	Txid         string `json:"txid"`
 	Timestamp    string `json:"timestamp"`
@@ -25,4 +27,16 @@ type ReceiveParams struct {
 	LNMacaroon   string
 	TapdHost     string
 	TapdMacaroon string
+}
+
+// Order represents a sell order.
+type Order struct {
+	AssetID             string        `json:"asset_id"`
+	AmountToSell        int64         `json:"amount_to_sell"`
+	AmountSatsToReceive int64         `json:"amount_sats_to_receive"`
+	Outpoint            tapd.Outpoint `json:"outpoint"`
+	//VirtualOutpoint     tapd.Outpoint `json:"virtual_outpoint"`
+	VirtualPSBT       string   `json:"virtual_psbt"`
+	AnchorPSBT        string   `json:"anchor_psbt"`
+	PassiveAssetPSBTs []string `json:"passive_asset_psbts"`
 }

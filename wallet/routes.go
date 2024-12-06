@@ -13,6 +13,7 @@ func RegisterWalletRoutes(e *echo.Echo, cfg *config.Config, tapdClient tapd.Tapd
 
 	// No authentication for /wallet/connect
 	api.POST("/wallet/connect", ConnectWallet)
+	api.GET("/orders", BuyGetOrders())
 
 	// Use auth middleware
 	walletGroup := api.Group("/wallet")
@@ -26,4 +27,10 @@ func RegisterWalletRoutes(e *echo.Echo, cfg *config.Config, tapdClient tapd.Tapd
 	walletGroup.GET("/transfers", GetTransfers(tapdClient))
 	//walletGroup.GET("/transaction/:id", GetTransaction)
 	walletGroup.POST("/receive", ReceiveAsset(tapdClient)) // Generate an invoice to receive an asset
+
+	// Buy/Sell routes for trustless swaps
+	walletGroup.POST("/buy/start", BuyStart(tapdClient))
+	walletGroup.POST("/buy/complete", BuyComplete(tapdClient))
+	walletGroup.POST("/sell/start", SellStart(tapdClient))
+	walletGroup.POST("/sell/complete", SellComplete(tapdClient))
 }

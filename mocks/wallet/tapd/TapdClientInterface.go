@@ -200,8 +200,8 @@ func (_c *TapdClientInterface_DecodeAddr_Call) RunAndReturn(run func(string, str
 }
 
 // FundVirtualPSBT provides a mock function with given fields: tapdHost, macaroon, invoice, inputs
-func (_m *TapdClientInterface) FundVirtualPSBT(tapdHost string, macaroon string, invoice string, inputs tapd.PrevIds) (*tapd.FundVirtualPSBTResponse, error) {
-	ret := _m.Called(tapdHost, macaroon, invoice, inputs)
+func (_m *TapdClientInterface) FundVirtualPSBT(tapdHost string, macaroon string, invoice string, inputs tapd.PrevIds, useTemplate bool) (*tapd.FundVirtualPSBTResponse, error) {
+	ret := _m.Called(tapdHost, macaroon, invoice, inputs, useTemplate)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FundVirtualPSBT")
@@ -209,19 +209,19 @@ func (_m *TapdClientInterface) FundVirtualPSBT(tapdHost string, macaroon string,
 
 	var r0 *tapd.FundVirtualPSBTResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, string, tapd.PrevIds) (*tapd.FundVirtualPSBTResponse, error)); ok {
-		return rf(tapdHost, macaroon, invoice, inputs)
+	if rf, ok := ret.Get(0).(func(string, string, string, tapd.PrevIds, bool) (*tapd.FundVirtualPSBTResponse, error)); ok {
+		return rf(tapdHost, macaroon, invoice, inputs, useTemplate)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string, tapd.PrevIds) *tapd.FundVirtualPSBTResponse); ok {
-		r0 = rf(tapdHost, macaroon, invoice, inputs)
+	if rf, ok := ret.Get(0).(func(string, string, string, tapd.PrevIds, bool) *tapd.FundVirtualPSBTResponse); ok {
+		r0 = rf(tapdHost, macaroon, invoice, inputs, useTemplate)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*tapd.FundVirtualPSBTResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, string, tapd.PrevIds) error); ok {
-		r1 = rf(tapdHost, macaroon, invoice, inputs)
+	if rf, ok := ret.Get(1).(func(string, string, string, tapd.PrevIds, bool) error); ok {
+		r1 = rf(tapdHost, macaroon, invoice, inputs, useTemplate)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -239,8 +239,8 @@ type TapdClientInterface_FundVirtualPSBT_Call struct {
 //   - macaroon string
 //   - invoice string
 //   - inputs tapd.PrevIds
-func (_e *TapdClientInterface_Expecter) FundVirtualPSBT(tapdHost interface{}, macaroon interface{}, invoice interface{}, inputs interface{}) *TapdClientInterface_FundVirtualPSBT_Call {
-	return &TapdClientInterface_FundVirtualPSBT_Call{Call: _e.mock.On("FundVirtualPSBT", tapdHost, macaroon, invoice, inputs)}
+func (_e *TapdClientInterface_Expecter) FundVirtualPSBT(tapdHost interface{}, macaroon interface{}, invoice interface{}, inputs interface{}, useTemplate interface{}) *TapdClientInterface_FundVirtualPSBT_Call {
+	return &TapdClientInterface_FundVirtualPSBT_Call{Call: _e.mock.On("FundVirtualPSBT", tapdHost, macaroon, invoice, inputs, useTemplate)}
 }
 
 func (_c *TapdClientInterface_FundVirtualPSBT_Call) Run(run func(tapdHost string, macaroon string, invoice string, inputs tapd.PrevIds)) *TapdClientInterface_FundVirtualPSBT_Call {
