@@ -76,6 +76,55 @@ paths:
         '401':
           description: Unauthorized
 
+  /orders:
+    get:
+      summary: Retrieve all buy orders
+      description: Returns a list of all items listed for sale.
+      responses:
+        '200':
+          description: A list of items for sale.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    asset_id:
+                      type: string
+                      description: The ID of the asset.
+                    amount_to_sell:
+                      type: integer
+                      description: The amount of the asset to sell.
+                    amount_sats_to_receive:
+                      type: integer
+                      description: The amount of sats to pay for the asset.
+                    outpoint:
+                      type: object
+                      properties:
+                        txid:
+                          type: string
+                          description: The transaction ID of the outpoint.
+                        output_index:
+                          type: integer
+                          description: The output index of the outpoint.
+                      required:
+                        - txid
+                        - output_index
+                    virtual_psbt:
+                      type: string
+                      description: The virtual PSBT associated with the order.
+                    anchor_psbt:
+                      type: string
+                      description: The anchor PSBT associated with the order.
+                    passive_asset_psbts:
+                      type: array
+                      items:
+                        type: string
+                      description: A list of passive asset PSBTs.
+        '500':
+          description: Internal Server Error
+
   /wallet/balances:
     get:
       summary: Get wallet asset balances

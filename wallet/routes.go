@@ -13,6 +13,7 @@ func RegisterWalletRoutes(e *echo.Echo, cfg *config.Config, tapdClient tapd.Tapd
 
 	// No authentication for /wallet/connect
 	api.POST("/wallet/connect", ConnectWallet)
+	api.GET("/orders", BuyGetOrders())
 
 	// Use auth middleware
 	walletGroup := api.Group("/wallet")

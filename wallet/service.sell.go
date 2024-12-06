@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"tajfi-server/wallet/lnd"
 	"tajfi-server/wallet/tapd"
 
@@ -92,6 +93,27 @@ func StartSellService(params SellStartParams, tapdClient tapd.TapdClientInterfac
 		return nil, fmt.Errorf("failed to read sighash.hex: %w", err)
 	}
 	fundResp.SighashHexToSign = sighash
+
+	// Use the selected UTXO's Outpoint for the filename and order.
+	filename := fmt.Sprintf("./orders/pending/%s_%d.json",
+		selectedUtxo.Outpoint.Txid,
+		selectedUtxo.Outpoint.OutputIndex,
+	)
+
+	order := Order{
+		AssetID:             params.AssetID,
+		AmountToSell:        params.AmountToSell,
+		AmountSatsToReceive: 0, // To be updated in CompleteSellService
+		Outpoint: tapd.Outpoint{
+			Txid:        selectedUtxo.Outpoint.Txid,
+			OutputIndex: selectedUtxo.Outpoint.OutputIndex,
+		},
+	}
+
+	// Save the order to a JSON file.
+	if err := WriteOrderToFile(order, filename); err != nil {
+		return nil, fmt.Errorf("failed to save order: %w", err)
+	}
 
 	// Step 3: Return the unsigned PSBT and sighash
 	return &SellStartResponse{
@@ -179,6 +201,44 @@ func CompleteSellService(params SellCompleteParams, tapdClient tapd.TapdClientIn
 		return nil, fmt.Errorf("failed to decode base64 signed PSBT: %w", err)
 	}
 	signedPsbtHex := hex.EncodeToString(signedPsbtBytes)
+
+	// Locate the order file using LndLockedUtxos.
+
+	inputUtxo, err := FetchOutpointFromPsbt(modifiedPSBT)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch outpoint from PSBT: %w", err)
+	}
+	filename := fmt.Sprintf("./orders/pending/%s_%d.json",
+		inputUtxo.Txid,
+		inputUtxo.OutputIndex,
+	)
+	for _, lockedUtxo := range commitResp.LndLockedUtxos {
+		log.Println("Locked UTXO:", lockedUtxo)
+		// TODO: Should immediately release the lock for these UTXOs.
+	}
+
+	// Read the existing order.
+	order, err := ReadOrderFromFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read order file: %w", err)
+	}
+
+	// Update the order with additional PSBT details.
+	order.VirtualPSBT = signResp.SignedPSBT
+	order.AnchorPSBT = anchorResp.AnchorPSBT
+	order.PassiveAssetPSBTs = commitResp.VirtualPSBTs
+	order.AmountSatsToReceive = params.AmountSatsToReceive
+	// remove /pending from the filename
+	finalFileName := strings.Replace(filename, "/pending", "", 1)
+	// Save the updated order.
+	if err := WriteOrderToFile(order, finalFileName); err != nil {
+		return nil, fmt.Errorf("failed to update order file: %w", err)
+	}
+	// delete pending order
+	err = os.Remove(filename)
+	if err != nil {
+		log.Println("Failed to delete pending order file", err)
+	}
 
 	return &SellCompleteResponse{
 		SignedVirtualPSBT:  signResp.SignedPSBT,

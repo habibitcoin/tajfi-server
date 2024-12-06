@@ -3,8 +3,11 @@ package wallet
 import (
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"path/filepath"
 	"tajfi-server/wallet/lnd"
 	"tajfi-server/wallet/tapd"
 )
@@ -25,6 +28,46 @@ type BuyCompleteParams struct {
 	AmountSatsToPay int64
 	TapdHost        string
 	TapdMacaroon    string
+}
+
+func GetBuyOrders() ([]Order, error) {
+	ordersDir := "./orders/"
+	var orders []Order
+
+	// Read all files in the orders directory.
+	files, err := ioutil.ReadDir(ordersDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read orders directory: %w", err)
+	}
+
+	// Iterate through each file and parse the JSON.
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		// Construct the file path.
+		filePath := filepath.Join(ordersDir, file.Name())
+
+		// Read the file content.
+		data, err := ioutil.ReadFile(filePath)
+		if err != nil {
+			fmt.Printf("failed to read file %s: %v\n", filePath, err)
+			continue
+		}
+
+		// Parse the JSON into an Order object.
+		var order Order
+		if err := json.Unmarshal(data, &order); err != nil {
+			fmt.Printf("failed to unmarshal file %s: %v\n", filePath, err)
+			continue
+		}
+
+		// Add the order to the list.
+		orders = append(orders, order)
+	}
+
+	return orders, nil
 }
 
 // StartBuyService updates the virtual PSBT for the buy process.

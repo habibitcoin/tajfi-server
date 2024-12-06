@@ -21,6 +21,21 @@ type BuyCompleteRequest struct {
 	AmountSatsToPay int64  `json:"amount_sats_to_pay" validate:"required"`
 }
 
+func BuyGetOrders() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Call the service layer to fetch the buy orders.
+		orders, err := GetBuyOrders()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			})
+		}
+
+		// Return the orders as JSON.
+		return c.JSON(http.StatusOK, orders)
+	}
+}
+
 // BuyStart initiates the buy process by updating the virtual PSBT.
 func BuyStart(tapdClient tapd.TapdClientInterface) echo.HandlerFunc {
 	return func(c echo.Context) error {
