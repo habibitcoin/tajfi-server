@@ -226,7 +226,7 @@ func CompleteSellService(params SellCompleteParams, tapdClient tapd.TapdClientIn
 
 	// Update the order with additional PSBT details.
 	order.VirtualPSBT = signResp.SignedPSBT
-	order.AnchorPSBT = anchorResp.AnchorPSBT
+	order.AnchorPSBT = signedPsbtHex
 	order.PassiveAssetPSBTs = commitResp.VirtualPSBTs
 	order.AmountSatsToReceive = params.AmountSatsToReceive
 	// remove /pending from the filename
