@@ -11,7 +11,13 @@ require (
 )
 
 require (
+	github.com/btcsuite/btcd v0.23.5-0.20231219003633-4c2ce6daed8f // indirect
+	github.com/btcsuite/btcd/btcutil v1.1.4 // indirect
+	github.com/btcsuite/btcd/btcutil/psbt v1.1.9 // indirect
+	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
+	github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/decred/dcrd/crypto/blake256 v1.0.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/labstack/gommon v0.4.2 // indirect

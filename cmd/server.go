@@ -35,11 +35,12 @@ func main() {
 	})
 
 	// Initialize dependencies
+	cfg := config.GetConfig(ctx)
 	// Tapd client
-	tapdClient := tapd.NewTapdClient(interfaces.NewInsecureHttpClient()) // TODO: enable TLS?
+	tapdClient := tapd.NewTapdClient(interfaces.NewInsecureHttpClient(), cfg) // TODO: enable TLS?
 
 	// Register wallet routes
-	wallet.RegisterWalletRoutes(e, config.GetConfig(ctx), tapdClient)
+	wallet.RegisterWalletRoutes(e, cfg, tapdClient)
 
 	// Start the server
 	if err := e.Start(":18881"); err != nil {

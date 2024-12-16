@@ -1,7 +1,9 @@
 package wallet
 
 import (
+	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -13,6 +15,10 @@ import (
 	"tajfi-server/wallet/tapd"
 
 	btcec "github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcutil"
+	"github.com/btcsuite/btcd/btcutil/psbt"
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcd/txscript"
 )
 
 // CompressPubKey converts a 32-byte X-coordinate into a 33-byte compressed public key.
@@ -94,16 +100,17 @@ func FilterOwnedUtxos(utxos *tapd.GetUtxosResponse, pubKey string, assetId strin
 					fmt.Println("Error parsing outpoint:", err)
 					continue
 				}
-				amount, err := strconv.Atoi(asset.Amount)
+				amount, err := strconv.ParseInt(asset.Amount, 10, 64)
 				if err != nil {
 					fmt.Println("Error converting amount:", err)
 					continue
 				}
 				ownedUtxos.Inputs = append(ownedUtxos.Inputs, tapd.PrevId{
-					Outpoint:  tapd.Outpoint{Txid: txid, OutputIndex: vout},
-					AssetId:   asset.AssetGenesis.AssetID,
-					ScriptKey: asset.ScriptKey,
-					Amount:    amount,
+					Outpoint:    tapd.Outpoint{Txid: txid, OutputIndex: vout},
+					AssetId:     asset.AssetGenesis.AssetID,
+					ScriptKey:   asset.ScriptKey,
+					Amount:      amount,
+					InternalKey: utxo.InternalKey,
 				})
 				break
 			}
@@ -129,4 +136,84 @@ func parseOutPoint(outPoint string) (txid string, vout int, err error) {
 	}
 
 	return txid, vout, nil
+}
+
+// WriteOrderToFile writes an order to a JSON file.
+func WriteOrderToFile(order Order, filename string) error {
+	data, err := json.MarshalIndent(order, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal order to JSON: %w", err)
+	}
+
+	err = ioutil.WriteFile(filename, data, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write order to file: %w", err)
+	}
+
+	return nil
+}
+
+// ReadOrderFromFile reads an order from a JSON file.
+func ReadOrderFromFile(filename string) (Order, error) {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return Order{}, fmt.Errorf("failed to read order file: %w", err)
+	}
+
+	var order Order
+	if err := json.Unmarshal(data, &order); err != nil {
+		return Order{}, fmt.Errorf("failed to unmarshal order JSON: %w", err)
+	}
+
+	return order, nil
+}
+
+// FetchOutpointFromPsbt extracts the Txid and OutputIndex of the first input from a PSBT.
+func FetchOutpointFromPsbt(psbtHex string) (tapd.Outpoint, error) {
+	psbtBytes, err := hex.DecodeString(psbtHex)
+	if err != nil {
+		return tapd.Outpoint{}, fmt.Errorf("failed to decode PSBT hex: %w", err)
+	}
+
+	parsedPsbt, err := psbt.NewFromRawBytes(bytes.NewReader(psbtBytes), false)
+	if err != nil {
+		return tapd.Outpoint{}, fmt.Errorf("failed to parse PSBT: %w", err)
+	}
+
+	if len(parsedPsbt.UnsignedTx.TxIn) == 0 {
+		return tapd.Outpoint{}, fmt.Errorf("no inputs in PSBT")
+	}
+
+	input := parsedPsbt.UnsignedTx.TxIn[0]
+	txid := hex.EncodeToString(reverse(input.PreviousOutPoint.Hash[:])) // Reverse for correct Txid order
+	return tapd.Outpoint{
+		Txid:        txid,
+		OutputIndex: int(input.PreviousOutPoint.Index),
+	}, nil
+}
+
+// reverse reverses a slice of bytes.
+func reverse(input []byte) []byte {
+	reversed := make([]byte, len(input))
+	for i := 0; i < len(input); i++ {
+		reversed[i] = input[len(input)-1-i]
+	}
+	return reversed
+}
+
+// generatePkScript generates the PkScript (locking script) for a given Bitcoin address.
+func GeneratePkScript(address string) ([]byte, error) {
+	// Decode the address into a btcutil.Address object.
+	addr, err := btcutil.DecodeAddress(address, &chaincfg.SigNetParams) // Adjust network params as needed.
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode address: %w", err)
+	}
+
+	// Generate the PkScript for the address.
+	pkScript, err := txscript.PayToAddrScript(addr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create PkScript: %w", err)
+	}
+
+	return pkScript, nil
 }

@@ -81,7 +81,7 @@ func SendStart(tapdClient tapd.TapdClientInterface) echo.HandlerFunc {
 		myUtxos := FilterOwnedUtxos(utxos, pubKey, decoded.AssetID)
 		log.Printf("Found %d UTXOs for pubkey %s", len(myUtxos.Inputs), pubKey)
 		// Call the Tapd service to fund the PSBT
-		fundedPsbt, err := tapdClient.FundVirtualPSBT(cfg.TapdHost, cfg.TapdMacaroon, payload.Invoice, tapd.PrevIds{myUtxos.Inputs})
+		fundedPsbt, err := tapdClient.FundVirtualPSBT(cfg.TapdHost, cfg.TapdMacaroon, payload.Invoice, tapd.PrevIds{myUtxos.Inputs}, true)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{
 				"error": err.Error(),
